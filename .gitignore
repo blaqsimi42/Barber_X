@@ -8,9 +8,7 @@ node_modules/
 
 # Build outputs
 build/
-dist/
 **/build
-**/dist
 
 # Vercel config
 .vercel
