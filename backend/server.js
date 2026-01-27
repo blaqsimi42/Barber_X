@@ -8,14 +8,28 @@ import cutRoutes from "./routes/cutRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 
 dotenv.config();
+
+// Connect to MongoDB
 connectDB();
 
 const app = express();
 
-// ✅ CORS — MUST BE BEFORE ROUTES
+// ✅ CORS setup
+const allowedOrigins = [
+  "http://localhost:5173", // local Vite dev
+  "https://barber-x-henna.vercel.app", // production frontend
+];
+
 app.use(
   cors({
-    origin: "https://barber-x-henna.vercel.app/", // Vite dev server
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow non-browser requests
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `The CORS policy does not allow access from ${origin}`;
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   }),
 );
@@ -52,5 +66,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () =>
-  console.log(`Server running in ${process.env.NODE_ENV} on port ${PORT}`)
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`),
 );
