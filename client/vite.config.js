@@ -1,16 +1,22 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  server: {
-    proxy: {
-      "/api": {
-        target: "https://barber-x.onrender.com", // Your backend server
-        changeOrigin: true,
-        secure: false,
+export default defineConfig(({ mode }) => {
+  // Load .env files
+  const env = loadEnv(mode, process.cwd(), "");
+
+  return {
+    plugins: [react(), tailwindcss()],
+    server: {
+      proxy: {
+        // Only used in local dev
+        "/api": {
+          target: env.VITE_API_URL || "http://localhost:5000",
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
-  },
+  };
 });
