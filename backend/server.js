@@ -15,9 +15,9 @@ const app = express();
 // ✅ CORS — MUST BE BEFORE ROUTES
 app.use(
   cors({
-    origin: "http://localhost:5173", // Vite dev server
+    origin: "https://barber-x-henna.vercel.app/", // Vite dev server
     credentials: true,
-  })
+  }),
 );
 
 // Body parsers
