@@ -35,7 +35,7 @@ const Colleagues = () => {
 
   return (
     <Layout>
-      <div className="space-y-8 md:mt-2 mt-10">
+      <div className="space-y-8 md:mt-2 mt-12">
         <h2 className="text-2xl font-bold text-indigo-600 mb-4">
           Your Colleagues
         </h2>

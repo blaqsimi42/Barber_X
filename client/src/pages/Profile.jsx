@@ -31,7 +31,9 @@ const Profile = () => {
 
   return (
     <Layout>
-      <h2 className="text-2xl font-bold mb-4 text-indigo-600">Profile</h2>
+      <>
+      <div className="mt-12 md:mt-2">
+              <h2 className="text-2xl font-bold mb-4 text-indigo-600">Profile</h2>
 
       <form onSubmit={handleSubmit} className="max-w-md space-y-4">
         <input
@@ -78,6 +80,9 @@ const Profile = () => {
           Update Profile
         </button>
       </form>
+      </div>
+
+      </>
     </Layout>
   );
 };
