@@ -1,4 +1,3 @@
-// src/pages/LandingPage.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { Scissors, MapPin, Phone, CircleCheck } from "lucide-react";
 import { useGetCutsQuery } from "../redux/api/cutsApiSlice";
@@ -14,7 +13,6 @@ const LandingPage = () => {
   const [scrollY, setScrollY] = useState(0);
   const location = useLocation();
 
-  // refs
   const heroDivRef = useRef(null);
   const heroImageRef = useRef(null);
   const heroTextRef = useRef(null);
@@ -23,7 +21,7 @@ const LandingPage = () => {
   const cardItemsRef = useRef([]);
   const cutsGridRef = useRef([]);
   const story1Ref = useRef(null);
-  const story2Ref = useRef(null); // Using story2 as second story
+  const story2Ref = useRef(null);
   const locationIconRef = useRef(null);
   const locationTitleRef = useRef(null);
   const locationTextRef = useRef(null);
@@ -49,14 +47,12 @@ const LandingPage = () => {
     },
   ];
 
-  // Track scroll
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // HERO animation
   useEffect(() => {
     const elements = [
       heroImageRef.current,
@@ -125,7 +121,6 @@ const LandingPage = () => {
     };
   }, []);
 
-  // CUTS grid
   useEffect(() => {
     if (!cuts?.data) return;
     const triggers = [];
@@ -153,7 +148,6 @@ const LandingPage = () => {
     return () => triggers.forEach((t) => t?.kill(true));
   }, [cuts]);
 
-  // ABOUT section scroll animation (story 1 and 2)
   useEffect(() => {
     [story1Ref.current, story2Ref.current].forEach((el) => {
       if (!el) return;
@@ -176,7 +170,6 @@ const LandingPage = () => {
     });
   }, []);
 
-  // LOCATION card animation
   useEffect(() => {
     if (!locationAddressRef.current || !locationButtonsRef.current) return;
     gsap.fromTo(
@@ -212,7 +205,6 @@ const LandingPage = () => {
     );
   }, []);
 
-  // Cleanup ScrollTrigger
   useEffect(
     () => () => ScrollTrigger.getAll().forEach((t) => t.kill(true)),
     [location.pathname],
@@ -223,10 +215,9 @@ const LandingPage = () => {
 
   return (
     <>
-      {/* HERO */}
       <section
         id="hero"
-        className="min-h-screen flex flex-col justify-center items-center text-center bg-[#faf9f7] relative overflow-hidden"
+        className="min-h-screen flex flex-col justify-center items-center text-center bg-[#faf9f7] relative overflow-hidden p-4 md:p-4 lg:p-8"
       >
         <Navbar />
         <div
@@ -287,9 +278,11 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* CUTS */}
-      <section id="cuts" className="py-20 bg-white overflow-hidden w-full">
-        <div className="text-center mb-12 w-full">
+      <section
+        id="cuts"
+        className="py-10 bg-white overflow-hidden w-full"
+      >
+        <div className="text-center mb-9 w-full ">
           <h2 className="text-4xl font-bold text-indigo-600">
             Our Signature Cuts
           </h2>
@@ -304,7 +297,7 @@ const LandingPage = () => {
         ) : cuts?.data?.length === 0 ? (
           <p className="text-center text-gray-500">No cuts available yet.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-10 lg:px-16">
             {cuts.data.slice(0, 3).map((cut, i) => (
               <div
                 key={cut._id}
@@ -339,11 +332,25 @@ const LandingPage = () => {
                 </div>
               </div>
             ))}
+            <div className="flex justify-center">
+              <div className=" mt-2 md:ml-150 lg:ml-186">
+                
+                <Link
+                  to="/showcase"
+                  className="inline-flex items-center justify-center gap-2 bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold text-lg shadow-lg border-2 border-indigo-500 hover:bg-indigo-50 hover:scale-105 transition-all duration-300 "
+                >
+                  More{" "}
+                  <span className="inline-block transform transition-transform group-hover:translate-x-1">
+                    {" "}
+                    →{" "}
+                  </span>{" "}
+                </Link>{" "}
+              </div>
+            </div>
           </div>
         )}
       </section>
 
-      {/* ABOUT */}
       <section
         id="about"
         className="relative bg-[#0a0a0a] overflow-hidden py-20 w-full"
@@ -379,7 +386,6 @@ const LandingPage = () => {
         })}
       </section>
 
-      {/* LOCATION */}
       <section
         id="location"
         className="relative h-screen bg-linear-to-br from-white via-indigo-50 to-white overflow-hidden"
@@ -407,7 +413,6 @@ const LandingPage = () => {
                 </p>
               </div>
             </div>
-            {/* Address Card */}
             <div
               ref={locationAddressRef}
               className="absolute inset-0 flex items-center justify-center opacity-0 px-4 md:px-8"
@@ -430,22 +435,8 @@ const LandingPage = () => {
                       </p>
                     </div>
                   </div>
-                  <div
-                    ref={locationButtonsRef}
-                    className="mt-8 pt-8 border-t border-indigo-100 flex justify-center gap-4"
-                  >
-                    <a
-                      href="#contact"
-                      className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-2"
-                    >
-                      <Phone size={20} /> Contact Us
-                    </a>
-                    <a
-                      href="#cuts"
-                      className="bg-white text-indigo-600 px-8 py-4 rounded-2xl font-bold flex items-center gap-2 border-2 border-indigo-600"
-                    >
-                      <Scissors size={20} /> View Our Cuts
-                    </a>
+                  <div>
+                    fff
                   </div>
                 </div>
               </div>
@@ -454,7 +445,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer
         id="contact"
         className="bg-indigo-600 text-white py-10 text-center space-y-3"
