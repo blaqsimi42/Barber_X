@@ -82,7 +82,7 @@ const Cuts = () => {
           </div>
         </div>
       ) : (
-        <div className="space-y-8 md:mt-2 mt-10">
+        <div className="space-y-8 md:mt-2 mt-12">
           <h2 className="text-2xl font-bold text-indigo-600">
             {user?.role === "admin" ? "Manage Cuts" : "My Cuts"}
           </h2>

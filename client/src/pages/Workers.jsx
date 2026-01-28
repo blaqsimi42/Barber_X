@@ -1,7 +1,7 @@
 import React from "react";
 import { useGetWorkersQuery } from "../redux/features/admin/adminApiSlice";
 import Layout from "../components/Layout";
-import { Loader2 } from "lucide-react";
+import { Loader } from "lucide-react";
 
 const Workers = () => {
   const { data, isLoading, isError, error } = useGetWorkersQuery();
@@ -9,8 +9,11 @@ const Workers = () => {
   if (isLoading)
     return (
       <Layout>
-        <div className="flex justify-center items-center h-[60vh]">
-          <Loader2 className="animate-spin text-indigo-600" size={30} />
+        <div className="flex items-center justify-center h-[80vh]">
+          <div className="flex flex-col items-center text-indigo-600 space-y-3">
+            <Loader className="animate-spin w-10 h-10" />
+            <p className="text-lg font-medium">Loading Workers List...</p>
+          </div>
         </div>
       </Layout>
     );
@@ -28,7 +31,7 @@ const Workers = () => {
 
   return (
     <Layout>
-      <div className="space-y-8">
+      <div className="space-y-8 mt-10 md:mt-0">
         <h2 className="text-2xl font-bold text-indigo-600 text-center">
           All Registered Workers
         </h2>

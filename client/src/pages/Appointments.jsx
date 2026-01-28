@@ -1,4 +1,3 @@
-// src/pages/Appointments.jsx
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import Layout from "../components/Layout";
 import { useSelector, useDispatch } from "react-redux";
@@ -26,7 +25,6 @@ import {
 } from "lucide-react";
 import { setVisitor } from "../redux/features/auth/authSlice";
 
-// ---------------- Appointment Card ----------------
 const AppointmentCard = ({ app, role, onCancel, onComplete }) => (
   <div className="p-5 bg-white rounded-lg shadow border border-indigo-100 hover:shadow-lg transition">
     <div className="flex justify-between items-start">
@@ -43,6 +41,19 @@ const AppointmentCard = ({ app, role, onCancel, onComplete }) => (
         {app.status}
       </span>
     </div>
+
+    {app.categories && app.categories.length > 0 && (
+      <div className="flex flex-wrap gap-2 mt-2">
+        {app.categories.map((cat, i) => (
+          <span
+            key={i}
+            className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full border border-indigo-100 font-medium"
+          >
+            {cat}
+          </span>
+        ))}
+      </div>
+    )}
 
     <p className="text-gray-700 mt-2">
       <span className="font-semibold">Customer:</span> {app.fullName}
@@ -91,7 +102,6 @@ const AppointmentCard = ({ app, role, onCancel, onComplete }) => (
   </div>
 );
 
-// ---------------- Booking Form ----------------
 const BookingForm = ({
   cuts,
   formData,
@@ -160,7 +170,6 @@ const BookingForm = ({
   </form>
 );
 
-// ---------------- Main Appointments Page ----------------
 const Appointments = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -176,6 +185,7 @@ const Appointments = () => {
   const [selectedTab, setSelectedTab] = useState("All");
   const [selectedPeriod, setSelectedPeriod] = useState("All Time");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   const [showTicket, setShowTicket] = useState(false);
   const [ticketData, setTicketData] = useState(null);
@@ -186,7 +196,6 @@ const Appointments = () => {
   });
   const ticketRef = useRef(null);
 
-  // Visitor auto-login
   useEffect(() => {
     if (!user && role === "visitor") {
       const token = localStorage.getItem("visitorToken");
@@ -195,7 +204,6 @@ const Appointments = () => {
     }
   }, [user, dispatch, role]);
 
-  // API hooks
   const { data: cuts, isLoading: isCutsLoading } = useGetMyCutsQuery();
   const { data: allAppointments, isLoading: loadingAll } =
     useGetAllAppointmentsQuery(undefined, { skip: role === "visitor" });
@@ -272,16 +280,13 @@ const Appointments = () => {
       ? allAppointments || []
       : myAppointments || [];
 
-  // ---------------- Filtering Logic ----------------
   const today = new Date();
   const filteredAppointments = useMemo(() => {
-    // 1️⃣ Filter by status
     let result = [...appointments];
     if (selectedTab !== "All") {
       result = result.filter((a) => a.status === selectedTab.toLowerCase());
     }
 
-    // 2️⃣ Filter by period
     return result.filter((a) => {
       const date = new Date(a.appointmentDate);
       if (selectedPeriod === "All Time") return true;
@@ -307,6 +312,18 @@ const Appointments = () => {
     });
   }, [appointments, selectedTab, selectedPeriod, today]);
 
+  const counts = useMemo(() => {
+    const all = appointments.length;
+    const pending = appointments.filter((a) => a.status === "pending").length;
+    const completed = appointments.filter(
+      (a) => a.status === "completed",
+    ).length;
+    const cancelled = appointments.filter(
+      (a) => a.status === "cancelled",
+    ).length;
+    return { all, pending, completed, cancelled };
+  }, [appointments]);
+
   const isLoadingPage = isCutsLoading || loadingAll || loadingMine || isBooking;
 
   if (isLoadingPage)
@@ -321,34 +338,51 @@ const Appointments = () => {
       </Layout>
     );
 
+  const isMobile = window.innerWidth < 768;
+  const visibleAppointments = showAll
+    ? filteredAppointments
+    : filteredAppointments.slice(0, isMobile ? 3 : 6);
+
   return (
     <Layout>
-      <div className="space-y-8 md:mt-2 mt-10">
+      <div className="space-y-8 md:mt-2 mt-12">
         <h2 className="text-3xl font-bold text-indigo-600">
           {role === "admin" || role === "worker"
             ? "All Appointments"
             : "My Appointments"}
         </h2>
 
-        {/* Tabs + Dropdown */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-indigo-100 pb-3">
           <div className="flex flex-wrap gap-3">
-            {["All", "Pending", "Completed", "Cancelled"].map((tab) => (
+            {[
+              { name: "All", count: counts.all },
+              { name: "Pending", count: counts.pending },
+              { name: "Completed", count: counts.completed },
+              { name: "Cancelled", count: counts.cancelled },
+            ].map((tab) => (
               <button
-                key={tab}
-                onClick={() => setSelectedTab(tab)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                  selectedTab === tab
+                key={tab.name}
+                onClick={() => setSelectedTab(tab.name)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-2 ${
+                  selectedTab === tab.name
                     ? "bg-indigo-600 text-white shadow"
                     : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
                 }`}
               >
-                {tab}
+                {tab.name}
+                <span
+                  className={`px-2 py-0.5 text-xs rounded-full ${
+                    selectedTab === tab.name
+                      ? "bg-white text-indigo-600"
+                      : "bg-indigo-200 text-indigo-700"
+                  }`}
+                >
+                  {tab.count}
+                </span>
               </button>
             ))}
           </div>
 
-          {/* Collapsible Dropdown */}
           <div className="relative">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -384,7 +418,6 @@ const Appointments = () => {
           </div>
         </div>
 
-        {/* Booking Form (Visitors Only) */}
         {role === "visitor" && (
           <BookingForm
             cuts={cuts}
@@ -395,27 +428,36 @@ const Appointments = () => {
           />
         )}
 
-        {/* Appointments Display */}
         {filteredAppointments.length === 0 ? (
           <p className="text-gray-500 mt-4 text-sm">
             No {selectedTab.toLowerCase()} appointments for this period.
           </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-            {filteredAppointments.map((app) => (
-              <AppointmentCard
-                key={app._id}
-                app={app}
-                role={role}
-                onCancel={handleCancel}
-                onComplete={handleComplete}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+              {visibleAppointments.map((app) => (
+                <AppointmentCard
+                  key={app._id}
+                  app={app}
+                  role={role}
+                  onCancel={handleCancel}
+                  onComplete={handleComplete}
+                />
+              ))}
+            </div>
+            {filteredAppointments.length > (isMobile ? 3 : 6) && (
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={() => setShowAll(!showAll)}
+                  className="text-indigo-600 font-medium hover:text-indigo-800 transition"
+                >
+                  {showAll ? "View Less" : "View More"}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
-
-      {/* Cancel and Ticket Modals remain unchanged ... */}
     </Layout>
   );
 };

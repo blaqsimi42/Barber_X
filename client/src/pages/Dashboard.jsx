@@ -230,7 +230,7 @@ const Dashboard = () => {
   // ----------------------------
   return (
     <Layout>
-      <div className="space-y-10 md:mt-2 mt-10">
+      <div className="space-y-10 md:mt-2 mt-12">
         {/* 🔹 Summary */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {!isVisitor && (

@@ -22,11 +22,7 @@ const LandingPage = () => {
   const cutsGridRef = useRef([]);
   const story1Ref = useRef(null);
   const story2Ref = useRef(null);
-  const locationIconRef = useRef(null);
-  const locationTitleRef = useRef(null);
-  const locationTextRef = useRef(null);
-  const locationAddressRef = useRef(null);
-  const locationButtonsRef = useRef(null);
+  const locationCardRef = useRef(null);
 
   const stories = [
     {
@@ -153,7 +149,7 @@ const LandingPage = () => {
       if (!el) return;
       gsap.fromTo(
         el,
-        { opacity: 0, y: 50, scale: 0.95 },
+        { opacity: 0, y: 60, scale: 0.96 },
         {
           opacity: 1,
           y: 0,
@@ -171,34 +167,19 @@ const LandingPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!locationAddressRef.current || !locationButtonsRef.current) return;
+    if (!locationCardRef.current) return;
     gsap.fromTo(
-      locationAddressRef.current,
-      { opacity: 0, y: 50, scale: 0.95 },
+      locationCardRef.current,
+      { opacity: 0, y: 60, scale: 0.95 },
       {
         opacity: 1,
         y: 0,
         scale: 1,
-        duration: 1,
+        duration: 1.2,
         ease: "power3.out",
         scrollTrigger: {
-          trigger: locationAddressRef.current,
-          start: "top 80%",
-          toggleActions: "play none none reverse",
-        },
-      },
-    );
-    gsap.fromTo(
-      locationButtonsRef.current,
-      { opacity: 0, y: 50 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 1,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: locationButtonsRef.current,
-          start: "top 80%",
+          trigger: locationCardRef.current,
+          start: "top 85%",
           toggleActions: "play none none reverse",
         },
       },
@@ -278,10 +259,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section
-        id="cuts"
-        className="py-10 bg-white overflow-hidden w-full"
-      >
+      <section id="cuts" className="py-10 bg-white overflow-hidden w-full">
         <div className="text-center mb-9 w-full ">
           <h2 className="text-4xl font-bold text-indigo-600">
             Our Signature Cuts
@@ -334,7 +312,6 @@ const LandingPage = () => {
             ))}
             <div className="flex justify-center">
               <div className=" mt-2 md:ml-150 lg:ml-186">
-                
                 <Link
                   to="/showcase"
                   className="inline-flex items-center justify-center gap-2 bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold text-lg shadow-lg border-2 border-indigo-500 hover:bg-indigo-50 hover:scale-105 transition-all duration-300 "
@@ -361,7 +338,9 @@ const LandingPage = () => {
             <div
               key={story.id}
               ref={ref}
-              className={`flex flex-col md:flex-row ml-12 justify-center items-center gap-12 mb-20 w-3/4 ${story.imagePosition === "left" ? "" : "md:flex-row-reverse"}`}
+              className={`flex flex-col md:flex-row ml-12 justify-center items-center gap-12 mb-20 w-3/4 ${
+                story.imagePosition === "left" ? "" : "md:flex-row-reverse"
+              }`}
             >
               <div className="md:w-2/2">
                 <img
@@ -390,56 +369,35 @@ const LandingPage = () => {
         id="location"
         className="relative h-screen bg-linear-to-br from-white via-indigo-50 to-white overflow-hidden"
       >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="max-w-7xl mx-auto w-full px-4 md:px-8">
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <div className="space-y-6 md:space-y-8">
-                <div ref={locationIconRef} className="inline-block">
-                  <div className="bg-indigo-600 rounded-full p-6 shadow-xl">
-                    <MapPin size={48} className="text-white" />
-                  </div>
-                </div>
-                <h2
-                  ref={locationTitleRef}
-                  className="text-5xl md:text-6xl font-bold text-gray-900"
-                >
-                  Find Us
-                </h2>
-                <p
-                  ref={locationTextRef}
-                  className="text-gray-600 text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed font-light px-4"
-                >
-                  Located in the heart of Lekki — where style meets convenience.
-                </p>
+        <div className="flex items-center justify-center h-full px-4 md:px-8">
+          <div
+            ref={locationCardRef}
+            className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 border-2 border-indigo-100 text-center space-y-4"
+          >
+            <div className="flex justify-center">
+              <div className="bg-indigo-600 rounded-full p-5 shadow-md">
+                <MapPin size={42} className="text-white" />
               </div>
             </div>
-            <div
-              ref={locationAddressRef}
-              className="absolute inset-0 flex items-center justify-center opacity-0 px-4 md:px-8"
-            >
-              <div className="w-full max-w-2xl text-center space-y-8 md:space-y-12">
-                <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border-2 border-indigo-100">
-                  <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
-                    <div className="bg-indigo-100 rounded-full p-4">
-                      <MapPin size={40} className="text-indigo-600" />
-                    </div>
-                    <div className="text-center md:text-left">
-                      <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                        Visit Our Shop
-                      </h3>
-                      <p className="text-lg md:text-xl text-gray-700 font-medium">
-                        12 Kings Avenue, Lekki Phase 1
-                      </p>
-                      <p className="text-base md:text-lg text-gray-500">
-                        Lagos, Nigeria
-                      </p>
-                    </div>
-                  </div>
-                  <div>
-                    fff
-                  </div>
-                </div>
-              </div>
+            <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
+              Visit Our Shop
+            </h3>
+            <p className="text-lg text-gray-700 font-medium">
+              12 Kings Avenue, Lekki Phase 1, Lagos, Nigeria
+            </p>
+            <div className="space-y-1 text-gray-600 text-sm md:text-base">
+              <p>
+                <span className="font-semibold text-indigo-600">
+                  Working Hours:
+                </span>{" "}
+                Mon–Sat 9 am – 8 pm, Sun Closed
+              </p>
+              <p>
+                <span className="font-semibold text-indigo-600">
+                  Booking Hours:
+                </span>{" "}
+                Mon–Sat 8 am – 7 pm, Sun Closed
+              </p>
             </div>
           </div>
         </div>

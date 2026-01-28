@@ -116,7 +116,7 @@ const Sales = () => {
 
   return (
     <Layout>
-      <div className="space-y-6 md:mt-2 mt-10">
+      <div className="space-y-6 md:mt-2 mt-12">
         <h2 className="text-3xl font-bold text-indigo-600">Sales Overview</h2>
 
         {/* Totals + Dropdown */}
