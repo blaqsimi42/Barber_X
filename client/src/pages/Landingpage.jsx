@@ -5,6 +5,7 @@ import Navbar from "./Navbar";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link, useLocation } from "react-router-dom";
+import { Loader } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -269,7 +270,12 @@ const LandingPage = () => {
           </p>
         </div>
         {isLoading ? (
-          <p className="text-center text-indigo-600">Loading cuts...</p>
+          <div className="flex items-center justify-center h-[80vh]">
+            <div className="flex flex-col items-center text-indigo-600 space-y-3">
+              <Loader className="animate-spin w-10 h-10" />
+              <p className="text-lg font-medium">Loading Styles...</p>
+            </div>
+          </div>
         ) : isError ? (
           <p className="text-center text-red-500">Failed to load cuts</p>
         ) : cuts?.data?.length === 0 ? (
@@ -316,7 +322,7 @@ const LandingPage = () => {
                   to="/showcase"
                   className="inline-flex items-center justify-center gap-2 bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold text-lg shadow-lg border-2 border-indigo-500 hover:bg-indigo-50 hover:scale-105 transition-all duration-300 "
                 >
-                  More{" "}
+                  Book{" "}
                   <span className="inline-block transform transition-transform group-hover:translate-x-1">
                     {" "}
                     →{" "}

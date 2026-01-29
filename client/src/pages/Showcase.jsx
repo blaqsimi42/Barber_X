@@ -1,11 +1,10 @@
-// src/pages/Showcase.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { useGetCutsQuery } from "../redux/api/cutsApiSlice";
 import { useBookAppointmentMutation } from "../redux/api/appointmentsApiSlice";
 import { toast } from "react-toastify";
 import {
   Calendar,
-  Loader2,
+  Loader,
   CheckCircle,
   Download,
   ArrowLeft,
@@ -32,7 +31,6 @@ const Showcase = () => {
   const [appointmentData, setAppointmentData] = useState(null);
   const ticketRef = useRef(null);
 
-  // Refs for cut images
   const cutImageRefs = useRef([]);
 
   // Restore scroll position
@@ -51,8 +49,7 @@ const Showcase = () => {
     cutImageRefs.current.forEach((img, i) => {
       if (!img) return;
 
-      gsap.set(img, { scale: 1 }); // start zoomed
-
+      gsap.set(img, { scale: 1 });
       gsap.to(img, {
         scale: 1,
         duration: 1.2,
@@ -60,7 +57,6 @@ const Showcase = () => {
         scrollTrigger: {
           trigger: img,
           start: "top 85%",
-          
         },
       });
     });
@@ -119,8 +115,11 @@ const Showcase = () => {
 
   if (isLoading)
     return (
-      <div className="flex justify-center items-center h-screen text-indigo-600 text-lg">
-        Loading cuts...
+      <div className="flex items-center justify-center h-[80vh]">
+        <div className="flex flex-col items-center text-indigo-600 space-y-3">
+          <Loader className="animate-spin w-10 h-10" />
+          <p className="text-lg font-medium">Loading Cuts...</p>
+        </div>
       </div>
     );
 
@@ -150,7 +149,7 @@ const Showcase = () => {
       {data?.data?.length === 0 ? (
         <p className="text-center text-gray-500">No cuts available yet.</p>
       ) : (
-        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {data?.data?.map((cut, i) => (
             <div
               key={cut._id}
@@ -160,16 +159,16 @@ const Showcase = () => {
                 ref={(el) => (cutImageRefs.current[i] = el)}
                 src={cut.imageUrl}
                 alt={cut.name}
-                className="h-64 w-full object-cover"
+                className="h-48 w-full object-cover"
               />
-              <div className="p-5 flex flex-col grow">
+              <div className="p-4 flex flex-col grow">
                 <h3 className="text-xl font-semibold text-indigo-600 mb-1 flex items-center gap-2">
                   {cut.name}
                 </h3>
                 <p className="text-gray-600 mb-2 grow">
                   {cut.description || "A clean, sharp, and trendy style."}
                 </p>
-                <div className="mt-auto flex justify-between items-center border-t border-indigo-100 pt-4">
+                <div className="mt-auto flex justify-between items-center border-t border-indigo-100 pt-3">
                   <p className="text-lg font-semibold text-indigo-700">
                     ₦{cut.price}
                   </p>
@@ -179,7 +178,7 @@ const Showcase = () => {
                 </div>
                 <button
                   onClick={() => setSelectedCut(cut)}
-                  className="w-full mt-4 bg-indigo-600 text-white py-2 rounded-2xl hover:bg-indigo-700 transition"
+                  className="w-full mt-3 bg-indigo-600 text-white py-2 rounded-2xl hover:bg-indigo-700 transition"
                 >
                   Book Now
                 </button>
@@ -252,7 +251,7 @@ const Showcase = () => {
               >
                 {isBooking ? (
                   <>
-                    <Loader2 className="animate-spin" size={18} /> Booking...
+                    <Loader className="animate-spin" size={18} /> Booking...
                   </>
                 ) : (
                   "Confirm Appointment"
@@ -271,7 +270,6 @@ const Showcase = () => {
             className="relative w-full max-w-sm rounded-2xl shadow-xl overflow-hidden"
           >
             <div className="bg-linear-to-b from-white to-indigo-50 p-6 border border-indigo-100 rounded-2xl relative z-10">
-              {/* Ticket content here (same as before) */}
               <div className="flex flex-col items-center mb-5">
                 <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-2 shadow-sm">
                   <img
