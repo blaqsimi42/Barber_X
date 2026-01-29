@@ -84,6 +84,12 @@ const Sidebar = ({ onClose }) => {
     ).length;
   }
 
+  // Total headcount for Bench (for admin + worker)
+  const totalBench = allAppointments?.length || 0;
+
+  // Colleagues badge (total workers)
+  const totalColleagues = workersData?.workers?.length || 0;
+
   // ------------------------
   // Active Link Styling
   // ------------------------
@@ -119,11 +125,22 @@ const Sidebar = ({ onClose }) => {
         link: "/dashboard/sales",
         badge: totalSales,
       },
+      {
+        label: "Bench",
+        icon: Users,
+        link: "/dashboard/bench",
+        badge: totalBench,
+      },
     );
   } else if (user?.role === "worker") {
     menuItems.push(
       { label: "Dashboard", icon: LayoutDashboard, link: "/dashboard" },
-      { label: "Colleagues", icon: UsersRound, link: "/dashboard/colleagues" },
+      {
+        label: "Colleagues",
+        icon: UsersRound,
+        link: "/dashboard/colleagues",
+        badge: totalColleagues,
+      },
       { label: "Cuts", icon: Scissors, link: "/dashboard/cuts" },
       {
         label: "Appointments",
@@ -136,6 +153,12 @@ const Sidebar = ({ onClose }) => {
         icon: DollarSign,
         link: "/dashboard/sales",
         badge: totalSales,
+      },
+      {
+        label: "Bench",
+        icon: Users,
+        link: "/dashboard/bench",
+        badge: totalBench,
       },
     );
   } else if (user?.role === "visitor") {

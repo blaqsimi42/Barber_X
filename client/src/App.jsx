@@ -14,6 +14,7 @@ import CutsGallery from "./pages/CutsGallery";
 import PrivateRoute from "./components/PrivateRoute";
 import Colleagues from "./pages/Colleagues";
 import Sales from "./pages/Sales"; // ✅ Added Sales page
+import Bench from "./pages/Bench"; // ✅ Added Bench page
 
 function App() {
   return (
@@ -82,6 +83,16 @@ function App() {
         element={
           <PrivateRoute>
             <Sales />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Bench Route ✅ */}
+      <Route
+        path="/dashboard/bench"
+        element={
+          <PrivateRoute>
+            <Bench />
           </PrivateRoute>
         }
       />
