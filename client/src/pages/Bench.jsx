@@ -194,7 +194,7 @@ const Bench = () => {
                       <thead className="bg-indigo-50">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-indigo-700">
-                            #
+                            No.
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-indigo-700">
                             Name

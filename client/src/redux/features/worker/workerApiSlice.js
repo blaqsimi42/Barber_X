@@ -49,6 +49,16 @@ export const workerApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ["Colleagues"],
     }),
+
+    // ✅ NEW: Update Worker Profile
+    updateWorkerProfile: builder.mutation({
+      query: (data) => ({
+        url: `${WORKER_URL}/profile`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Worker"],
+    }),
   }),
 });
 
@@ -56,5 +66,6 @@ export const {
   useRegisterWorkerMutation,
   useLoginWorkerMutation,
   useGetWorkerAppointmentsQuery,
-  useGetColleaguesQuery, // ✅ new hook
+  useGetColleaguesQuery,
+  useUpdateWorkerProfileMutation, // 👈 ADDITION
 } = workerApiSlice;

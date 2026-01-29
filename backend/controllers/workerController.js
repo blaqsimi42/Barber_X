@@ -93,3 +93,41 @@ export const getColleagues = asyncHandler(async (req, res) => {
     colleagues,
   });
 });
+
+/**
+ * @desc    Update worker profile
+ * @route   PUT /api/workers/profile
+ * @access  Private (Worker only)
+ */
+export const updateWorkerProfile = asyncHandler(async (req, res) => {
+  if (req.role !== "worker") {
+    res.status(403);
+    throw new Error("Access denied. Workers only.");
+  }
+
+  const worker = await Worker.findById(req.user._id);
+
+  if (!worker) {
+    res.status(404);
+    throw new Error("Worker not found");
+  }
+
+  // Update allowed fields only
+  worker.name = req.body.name || worker.name;
+  worker.email = req.body.email || worker.email;
+
+  if (req.body.password) {
+    worker.password = req.body.password;
+  }
+
+  const updatedWorker = await worker.save();
+
+  res.status(200).json({
+    _id: updatedWorker._id,
+    name: updatedWorker.name,
+    email: updatedWorker.email,
+    admin: updatedWorker.admin,
+    role: updatedWorker.role,
+    token: generateToken(updatedWorker._id),
+  });
+});

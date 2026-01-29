@@ -1,4 +1,3 @@
-// src/controllers/appointmentController.js
 import asyncHandler from "express-async-handler";
 import Appointment from "../models/appointmentModel.js";
 import Cut from "../models/cutModel.js";
@@ -31,6 +30,16 @@ export const bookAppointment = asyncHandler(async (req, res) => {
     throw new ErrorResponse("Invalid appointmentDate", 400);
   }
 
+  // ✅ Prevent selecting past dates
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // reset time
+  const selectedDate = new Date(appointmentDate);
+  selectedDate.setHours(0, 0, 0, 0);
+  if (selectedDate < today) {
+    throw new ErrorResponse("Appointment date cannot be in the past", 400);
+  }
+
+  // Validate time format HH:MM
   if (!/^\d{2}:\d{2}$/.test(appointmentTime)) {
     throw new ErrorResponse("Invalid appointmentTime format. Use HH:MM", 400);
   }

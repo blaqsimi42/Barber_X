@@ -28,6 +28,16 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       query: () => `${ADMIN_URL}/workers`,
       providesTags: ["Worker"],
     }),
+
+    // ✅ NEW: Update Admin Profile
+    updateAdminProfile: builder.mutation({
+      query: (data) => ({
+        url: `${ADMIN_URL}/profile`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Admin"],
+    }),
   }),
 });
 
@@ -35,4 +45,5 @@ export const {
   useRegisterAdminMutation,
   useLoginAdminMutation,
   useGetWorkersQuery,
+  useUpdateAdminProfileMutation, // 👈 ADDITION
 } = adminApiSlice;

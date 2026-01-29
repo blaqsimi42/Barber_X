@@ -23,14 +23,13 @@ const Showcase = () => {
   const [selectedCut, setSelectedCut] = useState(null);
   const [form, setForm] = useState({
     fullName: "",
-    appointmentDate: "",
+    appointmentDate: new Date().toISOString().split("T")[0], // default today
     appointmentTime: "",
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [appointmentData, setAppointmentData] = useState(null);
   const ticketRef = useRef(null);
-
   const cutImageRefs = useRef([]);
 
   // Restore scroll position
@@ -67,6 +66,18 @@ const Showcase = () => {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  // Disable past times for today
+  const getMinTime = () => {
+    const today = new Date().toISOString().split("T")[0];
+    if (form.appointmentDate === today) {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes() + 1).padStart(2, "0"); // +1 min buffer
+      return `${hours}:${minutes}`;
+    }
+    return "00:00";
+  };
+
   const handleDownload = async () => {
     if (!ticketRef.current) return;
     try {
@@ -102,7 +113,11 @@ const Showcase = () => {
       setAppointmentData(response.appointment || response);
       setShowSuccess(true);
       setSelectedCut(null);
-      setForm({ fullName: "", appointmentDate: "", appointmentTime: "" });
+      setForm({
+        fullName: "",
+        appointmentDate: new Date().toISOString().split("T")[0],
+        appointmentTime: "",
+      });
     } catch (err) {
       toast.error(err?.data?.message || "Failed to book appointment");
     }
@@ -227,6 +242,7 @@ const Showcase = () => {
                   name="appointmentDate"
                   value={form.appointmentDate}
                   onChange={handleChange}
+                  min={new Date().toISOString().split("T")[0]} // ✅ restrict past dates
                   className="w-full border rounded p-2 focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
@@ -240,6 +256,7 @@ const Showcase = () => {
                   name="appointmentTime"
                   value={form.appointmentTime}
                   onChange={handleChange}
+                  min={getMinTime()} // ✅ restrict past times if today
                   className="w-full border rounded p-2 focus:ring-1 focus:ring-indigo-500"
                 />
               </div>

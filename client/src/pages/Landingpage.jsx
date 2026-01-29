@@ -24,6 +24,7 @@ const LandingPage = () => {
   const story1Ref = useRef(null);
   const story2Ref = useRef(null);
   const locationCardRef = useRef(null);
+  const cutsDivRef = useRef(null);
 
   const stories = [
     {
@@ -119,31 +120,26 @@ const LandingPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!cuts?.data) return;
-    const triggers = [];
-    cutsGridRef.current.forEach((ref, i) => {
-      if (!ref) return;
-      const anim = gsap.fromTo(
-        ref,
-        { y: 60, opacity: 0, scale: 0.95 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ref,
-            start: "top 90%",
-            toggleActions: "play none none reverse",
-          },
-          delay: i * 0.15,
-        },
-      );
-      triggers.push(anim.scrollTrigger);
-    });
-    return () => triggers.forEach((t) => t?.kill(true));
-  }, [cuts]);
+    if (!cutsDivRef.current) return;
+
+    const updateParallax = () => {
+      const scroll = window.scrollY;
+      const offsetTop = cutsDivRef.current.offsetTop;
+      const windowHeight = window.innerHeight;
+
+      if (scroll + windowHeight > offsetTop) {
+        const parallax = (scroll + windowHeight - offsetTop) * 0.2;
+        gsap.to(cutsDivRef.current, {
+          y: parallax,
+          ease: "power1.out",
+          overwrite: "auto",
+        });
+      }
+    };
+
+    window.addEventListener("scroll", updateParallax, { passive: true });
+    return () => window.removeEventListener("scroll", updateParallax);
+  }, []);
 
   useEffect(() => {
     [story1Ref.current, story2Ref.current].forEach((el) => {
@@ -260,7 +256,11 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="cuts" className="py-10 bg-white overflow-hidden w-full">
+      <section
+        id="cuts"
+        ref={cutsDivRef}
+        className="py-10 bg-white overflow-hidden w-full"
+      >
         <div className="text-center mb-9 w-full ">
           <h2 className="text-4xl font-bold text-indigo-600">
             Our Signature Cuts
@@ -285,7 +285,6 @@ const LandingPage = () => {
             {cuts.data.slice(0, 3).map((cut, i) => (
               <div
                 key={cut._id}
-                ref={(el) => (cutsGridRef.current[i] = el)}
                 className="bg-white rounded-2xl shadow-lg overflow-hidden border border-indigo-100 flex flex-col justify-between group hover:shadow-2xl hover:-translate-y-2 transition-all duration-500"
               >
                 <div className="overflow-hidden">

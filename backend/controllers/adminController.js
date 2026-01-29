@@ -91,3 +91,34 @@ export const getWorkers = asyncHandler(async (req, res) => {
     workers,
   });
 });
+
+/**
+ * @desc    Update admin profile
+ * @route   PUT /api/admin/profile
+ * @access  Private (Admin only)
+ */
+export const updateAdminProfile = asyncHandler(async (req, res) => {
+  if (req.role !== "admin") {
+    res.status(403);
+    throw new Error("Access denied. Admins only.");
+  }
+
+  const admin = await Admin.findById(req.user._id);
+
+  if (!admin) {
+    res.status(404);
+    throw new Error("Admin not found");
+  }
+
+  // Update allowed fields only
+  admin.name = req.body.name || admin.name;
+  admin.email = req.body.email || admin.email;
+
+  if (req.body.password) {
+    admin.password = req.body.password;
+  }
+
+  const updatedAdmin = await admin.save();
+
+  res.status(200).json(formatAdminResponse(updatedAdmin));
+});

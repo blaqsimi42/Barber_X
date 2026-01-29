@@ -3,6 +3,7 @@ import {
   registerWorker,
   loginWorker,
   getColleagues,
+  updateWorkerProfile, // 👈 ADDITION
 } from "../controllers/workerController.js";
 import { protectWorker } from "../middleware/authMiddleware.js";
 
@@ -16,5 +17,8 @@ router.post("/login", loginWorker);
 
 // ✅ Get colleagues (same admin)
 router.get("/colleagues", protectWorker, getColleagues);
+
+// ✅ NEW: Update worker profile
+router.put("/profile", protectWorker, updateWorkerProfile);
 
 export default router;

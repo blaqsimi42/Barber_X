@@ -1,23 +1,65 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import Layout from "../components/Layout";
 import { toast } from "react-toastify";
 import { Clipboard } from "lucide-react";
+import { useUpdateAdminProfileMutation } from "../redux/features/admin/adminApiSlice";
+import { useUpdateWorkerProfileMutation } from "../redux/features/worker/workerApiSlice";
+import { setUser } from "../redux/features/auth/authSlice";
 
 const Profile = () => {
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
+
+  const [updateAdminProfile, { isLoading: updatingAdmin }] =
+    useUpdateAdminProfileMutation();
+  const [updateWorkerProfile, { isLoading: updatingWorker }] =
+    useUpdateWorkerProfileMutation();
 
   const [form, setForm] = useState({
     name: user?.name || "",
     email: user?.email || "",
+    password: "",
   });
+
+  // 🔄 Keep form state in sync with updated Redux user
+  useEffect(() => {
+    setForm({
+      name: user?.name || "",
+      email: user?.email || "",
+      password: "",
+    });
+  }, [user]);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast.success("Profile updated successfully!");
+
+    try {
+      const payload = {
+        name: form.name,
+        email: form.email,
+        ...(form.password && { password: form.password }),
+      };
+
+      let updatedUser;
+
+      if (user.role === "admin") {
+        updatedUser = await updateAdminProfile(payload).unwrap();
+      } else if (user.role === "worker") {
+        updatedUser = await updateWorkerProfile(payload).unwrap();
+      }
+
+      // update auth state with fresh token + data
+      dispatch(setUser(updatedUser));
+
+      setForm({ ...form, password: "" });
+      toast.success("Profile updated successfully!");
+    } catch (err) {
+      toast.error(err?.data?.message || "Failed to update profile");
+    }
   };
 
   const handleCopyAdminCode = () => {
@@ -54,6 +96,7 @@ const Profile = () => {
             </div>
           </div>
 
+          {/* Name */}
           <input
             type="text"
             name="name"
@@ -63,6 +106,7 @@ const Profile = () => {
             placeholder="Name"
           />
 
+          {/* Email */}
           <input
             type="email"
             name="email"
@@ -72,6 +116,17 @@ const Profile = () => {
             placeholder="Email"
           />
 
+          {/* Password */}
+          <input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            className="w-full p-2 border border-gray-300 rounded"
+            placeholder="New Password (optional)"
+          />
+
+          {/* Admin Code */}
           {user?.role === "admin" && (
             <div className="flex items-center gap-2 mt-2">
               <input
@@ -91,11 +146,13 @@ const Profile = () => {
             </div>
           )}
 
+          {/* Submit */}
           <button
             type="submit"
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+            disabled={updatingAdmin || updatingWorker}
+            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition disabled:opacity-70"
           >
-            Update Profile
+            {updatingAdmin || updatingWorker ? "Updating..." : "Update Profile"}
           </button>
         </form>
       </div>
