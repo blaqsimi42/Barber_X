@@ -197,6 +197,7 @@ const LandingPage = () => {
 
   return (
     <>
+      {/* Hero Section */}
       <section
         id="hero"
         className="min-h-screen flex flex-col justify-center items-center text-center bg-[#faf9f7] relative overflow-hidden p-4 md:p-4 lg:p-8"
@@ -257,10 +258,11 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Cuts Section */}
       <section
         id="cuts"
         ref={cutsDivRef}
-        className=" bg-white overflow-hidden w-full sm:h-[160rem] md:h-190 lg:min-h-screen"
+        className="bg-white overflow-hidden w-full sm:h-[160rem] md:h-190 lg:min-h-screen"
       >
         <div ref={cutsInnerRef}>
           <div className="text-center mb-2 w-full">
@@ -305,17 +307,21 @@ const LandingPage = () => {
                           "A premium style cut for modern looks."}
                       </p>
                     </div>
-                    <div className="mt-auto flex justify-between items-center border-t border-indigo-100 pt-4">
+
+                    <div className="mt-auto flex justify-between items-center border-t border-indigo-100 pt-4 gap-2">
                       <p className="text-lg font-semibold text-indigo-600">
                         ₦{cut.price}
                       </p>
-                      {/* Mobile: Book button, Desktop: style name */}
+
+                      {/* Mobile Book Button */}
                       <Link
                         to="/showcase"
-                        className="text-gray-500 text-sm italic md:hidden bg-indigo-600 text-white px-4 py-1 rounded-lg hover:bg-indigo-700 transition-all"
+                        className="md:hidden bg-indigo-600 text-white px-4 py-1 rounded-lg hover:bg-indigo-700 transition-all text-sm flex items-center justify-center"
                       >
                         Book
                       </Link>
+
+                      {/* Desktop Style Name */}
                       <span className="hidden md:inline text-gray-500 text-sm italic">
                         {cut.name}
                       </span>
@@ -323,11 +329,13 @@ const LandingPage = () => {
                   </div>
                 </div>
               ))}
-              <div className="flex justify-center  w-full">
-                <div className=" mt-2 md:ml-150 lg:ml-186">
+
+              {/* Main Showcase Button */}
+              <div className="flex justify-center w-full">
+                <div className="mt-2 md:ml-150 lg:ml-186">
                   <Link
                     to="/showcase"
-                    className="inline-flex items-center justify-center gap-2 bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold text-lg shadow-lg border-2 border-indigo-500 hover:bg-indigo-50 hover:scale-105 transition-all duration-300 "
+                    className="inline-flex items-center justify-center gap-2 bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold text-lg shadow-lg border-2 border-indigo-500 hover:bg-indigo-50 hover:scale-105 transition-all duration-300"
                   >
                     Book
                     <ArrowRight />
@@ -339,6 +347,7 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* About Section */}
       <section
         id="about"
         className="relative bg-[#0a0a0a] overflow-hidden py-20 w-full"
@@ -374,6 +383,7 @@ const LandingPage = () => {
         })}
       </section>
 
+      {/* Location Section */}
       <section
         id="location"
         className="relative h-screen bg-linear-to-br from-white via-indigo-50 to-white overflow-hidden"
@@ -381,36 +391,58 @@ const LandingPage = () => {
         <div className="flex items-center justify-center h-full px-4 md:px-8">
           <div
             ref={locationCardRef}
-            className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 border-2 border-indigo-100 text-center space-y-4"
+            className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 border-2 border-indigo-100 text-center space-y-6"
           >
             <div className="flex justify-center">
               <div className="bg-indigo-600 rounded-full p-5 shadow-md">
                 <MapPin size={42} className="text-white" />
               </div>
             </div>
+
             <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
               Visit Our Shop
             </h3>
             <p className="text-lg text-gray-700 font-medium">
               12 Kings Avenue, Lekki Phase 1, Lagos, Nigeria
             </p>
-            {/* New Working Hours */}
-            <div className="flex justify-between mt-4 text-gray-600 font-medium">
-              <span>Working Hours:</span>
-              <span>9:00 AM</span>
-            </div>
-            <div className="flex justify-between text-gray-600 font-medium">
-              <span>Closing Hours:</span>
-              <span>8:00 PM</span>
-            </div>
-            <div className="flex justify-between text-gray-600 font-medium">
-              <span>Booking Hours:</span>
-              <span>5:00 AM</span>
+
+            {/* Hours Section */}
+            <div className="mt-4 bg-indigo-50 rounded-xl p-4 space-y-3">
+              {[
+                { label: "Working Hours", value: "9:00 AM" },
+                { label: "Closing Hours", value: "8:00 PM" },
+                { label: "Earliest Booking", value: "5:00 AM" },
+              ].map((hour) => (
+                <div
+                  key={hour.label}
+                  className="flex justify-between items-center text-gray-700"
+                >
+                  <div className="flex items-center gap-2 font-medium">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-indigo-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    {hour.label}
+                  </div>
+                  <span className="font-bold">{hour.value}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
+      {/* Footer */}
       <footer
         id="contact"
         className="bg-indigo-600 text-white py-10 text-center space-y-3"
