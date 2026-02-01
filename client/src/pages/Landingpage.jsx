@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Scissors, MapPin, Phone, CircleCheck } from "lucide-react";
+import { Scissors, MapPin, Phone, CircleCheck, ArrowRight } from "lucide-react";
 import { useGetCutsQuery } from "../redux/api/cutsApiSlice";
 import Navbar from "./Navbar";
 import { gsap } from "gsap";
@@ -20,11 +20,14 @@ const LandingPage = () => {
   const heroButtonRef = useRef(null);
   const cardRef = useRef(null);
   const cardItemsRef = useRef([]);
+
+  const cutsDivRef = useRef(null);
+  const cutsInnerRef = useRef(null);
   const cutsGridRef = useRef([]);
+
   const story1Ref = useRef(null);
   const story2Ref = useRef(null);
   const locationCardRef = useRef(null);
-  const cutsDivRef = useRef(null);
 
   const stories = [
     {
@@ -71,45 +74,32 @@ const LandingPage = () => {
     )
       .fromTo(
         heroImageRef.current,
-        { scale: 2.5, x: "20%", transformOrigin: "center right", opacity: 0 },
-        { scale: 1, x: "0%", opacity: 1, duration: 2, ease: "power3.out" },
+        { scale: 2.5, x: "20%", opacity: 0 },
+        { scale: 1, x: "0%", opacity: 1, duration: 2 },
         "-=1.6",
       )
       .fromTo(
         heroTextRef.current,
         { y: 80, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1.2, ease: "back.out(1.4)" },
+        { y: 0, opacity: 1, duration: 1.2 },
         "-=0.8",
       )
       .fromTo(
         heroButtonRef.current,
         { x: -40, opacity: 0, scale: 0.9 },
-        {
-          x: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.8,
-          ease: "elastic.out(1,0.6)",
-        },
+        { x: 0, opacity: 1, scale: 1, duration: 0.8 },
         "-=0.6",
       )
       .fromTo(
         cardRef.current,
         { x: 100, y: -30, opacity: 0, rotation: 8 },
-        {
-          x: 0,
-          y: 0,
-          opacity: 1,
-          rotation: 0,
-          duration: 1.2,
-          ease: "back.out(1.2)",
-        },
+        { x: 0, y: 0, opacity: 1, rotation: 0, duration: 1.2 },
         "-=0.7",
       )
       .fromTo(
         cardItemsRef.current.filter(Boolean),
         { x: -20, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: "power2.out" },
+        { x: 0, opacity: 1, stagger: 0.08 },
         "-=0.9",
       );
 
@@ -120,26 +110,44 @@ const LandingPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!cutsDivRef.current) return;
+    if (!cutsDivRef.current || !cutsInnerRef.current) return;
 
-    const updateParallax = () => {
-      const scroll = window.scrollY;
-      const offsetTop = cutsDivRef.current.offsetTop;
-      const windowHeight = window.innerHeight;
-
-      if (scroll + windowHeight > offsetTop) {
-        const parallax = (scroll + windowHeight - offsetTop) * 0.2;
-        gsap.to(cutsDivRef.current, {
-          y: parallax,
-          ease: "power1.out",
-          overwrite: "auto",
-        });
-      }
-    };
-
-    window.addEventListener("scroll", updateParallax, { passive: true });
-    return () => window.removeEventListener("scroll", updateParallax);
+    gsap.fromTo(
+      cutsInnerRef.current,
+      { y: 0 },
+      {
+        y: 120,
+        ease: "none",
+        scrollTrigger: {
+          trigger: cutsDivRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+        },
+      },
+    );
   }, []);
+
+  useEffect(() => {
+    cutsGridRef.current.forEach((card, i) => {
+      if (!card) return;
+      gsap.fromTo(
+        card,
+        { scale: 0.85 },
+        {
+          scale: 1,
+          duration: 0.8,
+          ease: "power3.out",
+          delay: i * 0.1,
+          scrollTrigger: {
+            trigger: card,
+            start: "top 90%",
+            toggleActions: "play none none reverse",
+          },
+        },
+      );
+    });
+  }, [cuts]);
 
   useEffect(() => {
     [story1Ref.current, story2Ref.current].forEach((el) => {
@@ -152,11 +160,9 @@ const LandingPage = () => {
           y: 0,
           scale: 1,
           duration: 1,
-          ease: "power3.out",
           scrollTrigger: {
             trigger: el,
             start: "top 85%",
-            toggleActions: "play none none reverse",
           },
         },
       );
@@ -173,11 +179,9 @@ const LandingPage = () => {
         y: 0,
         scale: 1,
         duration: 1.2,
-        ease: "power3.out",
         scrollTrigger: {
           trigger: locationCardRef.current,
           start: "top 85%",
-          toggleActions: "play none none reverse",
         },
       },
     );
@@ -226,10 +230,7 @@ const LandingPage = () => {
               href="#cuts"
               className="group inline-block mt-6 bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-indigo-700 border-2 border-white transition-all duration-300 hover:scale-105 hover:shadow-xl"
             >
-              Explore Cuts
-              <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">
-                →
-              </span>
+              Explore Cuts →
             </a>
           </div>
           <div
@@ -259,78 +260,83 @@ const LandingPage = () => {
       <section
         id="cuts"
         ref={cutsDivRef}
-        className="py-10 bg-white overflow-hidden w-full"
+        className=" bg-white overflow-hidden w-full sm:h-[160rem] md:h-190 lg:min-h-screen"
       >
-        <div className="text-center mb-9 w-full ">
-          <h2 className="text-4xl font-bold text-indigo-600">
-            Our Signature Cuts
-          </h2>
-          <p className="text-gray-500 text-lg">
-            Handpicked styles loved by our clients
-          </p>
-        </div>
-        {isLoading ? (
-          <div className="flex items-center justify-center h-[80vh]">
-            <div className="flex flex-col items-center text-indigo-600 space-y-3">
-              <Loader className="animate-spin w-10 h-10" />
-              <p className="text-lg font-medium">Loading Styles...</p>
-            </div>
+        <div ref={cutsInnerRef}>
+          <div className="text-center mb-2 w-full">
+            <h2 className="text-4xl font-bold text-indigo-600">
+              Our Signature Cuts
+            </h2>
+            <p className="text-gray-500 text-lg">
+              Handpicked styles loved by our clients
+            </p>
           </div>
-        ) : isError ? (
-          <p className="text-center text-red-500">Failed to load cuts</p>
-        ) : cuts?.data?.length === 0 ? (
-          <p className="text-center text-gray-500">No cuts available yet.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-10 lg:px-16">
-            {cuts.data.slice(0, 3).map((cut, i) => (
-              <div
-                key={cut._id}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden border border-indigo-100 flex flex-col justify-between group hover:shadow-2xl hover:-translate-y-2 transition-all duration-500"
-              >
-                <div className="overflow-hidden">
-                  <img
-                    src={cut.imageUrl}
-                    alt={cut.name}
-                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                </div>
-                <div className="p-6 flex flex-col justify-between">
-                  <div className="flex flex-col text-left mb-4">
-                    <h3 className="font-bold text-xl text-indigo-700 mb-1 flex items-center gap-2">
-                      <Scissors size={18} /> {cut.name}
-                    </h3>
-                    <p className="text-gray-600 text-sm line-clamp-2">
-                      {cut.description ||
-                        "A premium style cut for modern looks."}
-                    </p>
-                  </div>
-                  <div className="mt-auto flex justify-between items-center border-t border-indigo-100 pt-4">
-                    <p className="text-lg font-semibold text-indigo-600">
-                      ₦{cut.price}
-                    </p>
-                    <span className="text-gray-500 text-sm italic">
-                      {cut.name}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-            <div className="flex justify-center">
-              <div className=" mt-2 md:ml-150 lg:ml-186">
-                <Link
-                  to="/showcase"
-                  className="inline-flex items-center justify-center gap-2 bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold text-lg shadow-lg border-2 border-indigo-500 hover:bg-indigo-50 hover:scale-105 transition-all duration-300 "
+
+          {isLoading ? (
+            <div className="flex items-center justify-center h-[80vh]">
+              <Loader className="animate-spin w-10 h-10 text-indigo-600" />
+            </div>
+          ) : isError ? (
+            <p className="text-center text-red-500">Failed to load cuts</p>
+          ) : cuts?.data?.length === 0 ? (
+            <p className="text-center text-gray-500">No cuts available yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-10 lg:px-16">
+              {cuts.data.slice(0, 3).map((cut, i) => (
+                <div
+                  key={cut._id}
+                  ref={(el) => (cutsGridRef.current[i] = el)}
+                  className="bg-white rounded-3xl shadow-lg overflow-hidden border border-indigo-100 flex flex-col justify-between group hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 mb-2"
                 >
-                  Book{" "}
-                  <span className="inline-block transform transition-transform group-hover:translate-x-1">
-                    {" "}
-                    →{" "}
-                  </span>{" "}
-                </Link>{" "}
+                  <div className="overflow-hidden">
+                    <img
+                      src={cut.imageUrl}
+                      alt={cut.name}
+                      className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                  </div>
+                  <div className="p-6 flex flex-col justify-between">
+                    <div className="flex flex-col text-left mb-4">
+                      <h3 className="font-bold text-xl text-indigo-700 mb-1 flex items-center gap-2">
+                        <Scissors size={18} /> {cut.name}
+                      </h3>
+                      <p className="text-gray-600 text-sm line-clamp-2">
+                        {cut.description ||
+                          "A premium style cut for modern looks."}
+                      </p>
+                    </div>
+                    <div className="mt-auto flex justify-between items-center border-t border-indigo-100 pt-4">
+                      <p className="text-lg font-semibold text-indigo-600">
+                        ₦{cut.price}
+                      </p>
+                      {/* Mobile: Book button, Desktop: style name */}
+                      <Link
+                        to="/showcase"
+                        className="text-gray-500 text-sm italic md:hidden bg-indigo-600 text-white px-4 py-1 rounded-lg hover:bg-indigo-700 transition-all"
+                      >
+                        Book
+                      </Link>
+                      <span className="hidden md:inline text-gray-500 text-sm italic">
+                        {cut.name}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="flex justify-center  w-full">
+                <div className=" mt-2 md:ml-150 lg:ml-186">
+                  <Link
+                    to="/showcase"
+                    className="inline-flex items-center justify-center gap-2 bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold text-lg shadow-lg border-2 border-indigo-500 hover:bg-indigo-50 hover:scale-105 transition-all duration-300 "
+                  >
+                    Book
+                    <ArrowRight />
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </section>
 
       <section
@@ -355,11 +361,9 @@ const LandingPage = () => {
                 />
               </div>
               <div className="md:w-1/2 lg:w-30px text-white space-y-4">
-                <div className="inline-block">
-                  <span className="text-indigo-500 font-bold text-xs tracking-[0.3em] uppercase">
-                    Chapter {index === 0 ? "01" : "02"}
-                  </span>
-                </div>
+                <span className="text-indigo-500 font-bold text-xs tracking-[0.3em] uppercase">
+                  Chapter {index === 0 ? "01" : "02"}
+                </span>
                 <h3 className="text-3xl md:text-5xl font-bold">
                   {story.title}
                 </h3>
@@ -390,19 +394,18 @@ const LandingPage = () => {
             <p className="text-lg text-gray-700 font-medium">
               12 Kings Avenue, Lekki Phase 1, Lagos, Nigeria
             </p>
-            <div className="space-y-1 text-gray-600 text-sm md:text-base">
-              <p>
-                <span className="font-semibold text-indigo-600">
-                  Working Hours:
-                </span>{" "}
-                Mon–Sat 9 am – 8 pm, Sun Closed
-              </p>
-              <p>
-                <span className="font-semibold text-indigo-600">
-                  Booking Hours:
-                </span>{" "}
-                Mon–Sat 8 am – 7 pm, Sun Closed
-              </p>
+            {/* New Working Hours */}
+            <div className="flex justify-between mt-4 text-gray-600 font-medium">
+              <span>Working Hours:</span>
+              <span>9:00 AM</span>
+            </div>
+            <div className="flex justify-between text-gray-600 font-medium">
+              <span>Closing Hours:</span>
+              <span>8:00 PM</span>
+            </div>
+            <div className="flex justify-between text-gray-600 font-medium">
+              <span>Booking Hours:</span>
+              <span>5:00 AM</span>
             </div>
           </div>
         </div>
