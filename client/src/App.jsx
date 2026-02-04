@@ -6,7 +6,9 @@ import Dashboard from "./pages/Dashboard";
 import AdminLogin from "./pages/AdminLogin";
 import AdminRegister from "./pages/AdminRegister";
 import WorkerLogin from "./pages/WorkerLogin";
-import WorkerRegister from "./pages/WorkerRegister"
+import WorkerRegister from "./pages/WorkerRegister";
+import VisitorLogin from "./pages/VisitorLogin";
+import VisitorDashboard from "./pages/VisitorDashboard";
 import Cuts from "./pages/Cuts";
 import Appointments from "./pages/Appointments";
 import Workers from "./pages/Workers";
@@ -27,7 +29,18 @@ function App() {
       <Route path="/admin-register" element={<AdminRegister />} />
       <Route path="/worker-login" element={<WorkerLogin />} />
       <Route path="/worker-register" element={<WorkerRegister />} />
+      <Route path="/visitor-login" element={<VisitorLogin />} />
       <Route path="/cuts" element={<CutsGallery />} />
+
+      {/* Visitor Dashboard Route */}
+      <Route
+        path="/visitor-dashboard"
+        element={
+          <PrivateRoute>
+            <VisitorDashboard />
+          </PrivateRoute>
+        }
+      />
 
       {/* Protected Routes (Admin & Worker) */}
       <Route

@@ -3,6 +3,7 @@ import { setupListeners } from "@reduxjs/toolkit/query/react";
 
 import { apiSlice } from "./api/apiSlice";
 import { appointmentsApiSlice } from "./api/appointmentsApiSlice";
+import { visitorApiSlice } from "./api/visitorApiSlice";
 
 import authReducer, { setVisitor } from "./features/auth/authSlice";
 import cutsReducer from "./features/cuts/cutsSlice";
@@ -12,13 +13,16 @@ const store = configureStore({
     auth: authReducer,
     cuts: cutsReducer,
     [apiSlice.reducerPath]: apiSlice.reducer,
-    [appointmentsApiSlice.reducerPath]: appointmentsApiSlice.reducer, // ✅ add appointments slice
+    [appointmentsApiSlice.reducerPath]: appointmentsApiSlice.reducer,
+    [visitorApiSlice.reducerPath]: visitorApiSlice.reducer, // ✅ add visitor slice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       immutableCheck: false,
       serializableCheck: false,
-    }).concat(apiSlice.middleware), // ✅ only concat base apiSlice middleware
+    })
+      .concat(apiSlice.middleware)
+      .concat(visitorApiSlice.middleware), // ✅ concat visitor middleware
   devTools: process.env.NODE_ENV !== "production",
 });
 

@@ -3,14 +3,13 @@ import { createSlice } from "@reduxjs/toolkit";
 // Load user from localStorage (admin/worker) or visitor
 const storedUser = JSON.parse(localStorage.getItem("user"));
 const visitorToken = localStorage.getItem("visitorToken");
-const visitorName = localStorage.getItem("visitorName");
+const visitorData = JSON.parse(localStorage.getItem("visitorData"));
 
 const initialState = {
   user:
     storedUser ||
-    (visitorToken && visitorName
-      ? { role: "visitor", name: visitorName, token: visitorToken }
-      : null),
+    (visitorToken && visitorData ? { ...visitorData, role: "visitor" } : null),
+  token: visitorToken || null,
 };
 
 const authSlice = createSlice({
@@ -19,19 +18,23 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action) => {
       state.user = action.payload;
+      state.token = action.payload?.token || null;
       localStorage.setItem("user", JSON.stringify(action.payload));
     },
     setVisitor: (state, action) => {
-      // payload = { name, token }
-      state.user = { role: "visitor", ...action.payload };
-      localStorage.setItem("visitorToken", action.payload.token);
-      localStorage.setItem("visitorName", action.payload.name);
+      // payload = { user: {...}, token }
+      const { user, token } = action.payload;
+      state.user = { ...user, role: "visitor" };
+      state.token = token;
+      localStorage.setItem("visitorToken", token);
+      localStorage.setItem("visitorData", JSON.stringify(user));
     },
     logout: (state) => {
       state.user = null;
+      state.token = null;
       localStorage.removeItem("user");
       localStorage.removeItem("visitorToken");
-      localStorage.removeItem("visitorName");
+      localStorage.removeItem("visitorData");
     },
   },
 });

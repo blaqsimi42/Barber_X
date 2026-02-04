@@ -1,9 +1,10 @@
 import asyncHandler from "express-async-handler";
 import Appointment from "../models/appointmentModel.js";
 import Cut from "../models/cutModel.js";
+import Visitor from "../models/visitorModel.js";
 import ErrorResponse from "../utils/errorResponse.js";
 import mongoose from "mongoose";
-import { generateTempToken } from "../utils/generateToken.js";
+import { generateTempToken, generateToken } from "../utils/generateToken.js";
 
 // Allowed statuses
 const allowedStatuses = ["pending", "completed", "cancelled"];
@@ -19,7 +20,15 @@ const timeToMinutes = (timeStr) => {
 // @route   POST /api/appointments
 // @access  Public (visitor)
 export const bookAppointment = asyncHandler(async (req, res) => {
-  const { fullName, cutId, appointmentDate, appointmentTime } = req.body;
+  const {
+    fullName,
+    email,
+    phone,
+    cutId,
+    appointmentDate,
+    appointmentTime,
+    password,
+  } = req.body;
 
   if (!fullName || !cutId || !appointmentDate || !appointmentTime) {
     throw new ErrorResponse("All fields are required", 400);
@@ -128,6 +137,34 @@ export const bookAppointment = asyncHandler(async (req, res) => {
 
     const benchNumber = benchCount + 1;
 
+    // ✅ Auto-register or fetch existing visitor
+    let visitor = null;
+    let visitorToken = null;
+
+    if (email && phone && password) {
+      // Try to find existing visitor
+      visitor = await Visitor.findOne({ email }).session(session);
+
+      if (!visitor) {
+        // Create new visitor
+        visitor = await Visitor.create(
+          [
+            {
+              fullName,
+              email,
+              phone,
+              password,
+              role: "visitor",
+            },
+          ],
+          { session },
+        );
+        visitor = visitor[0];
+      }
+
+      visitorToken = generateToken(visitor._id);
+    }
+
     const appointment = await Appointment.create(
       [
         {
@@ -139,20 +176,41 @@ export const bookAppointment = asyncHandler(async (req, res) => {
           appointmentTime,
           benchNumber,
           status: "pending",
+          visitorId: visitor?._id || null,
         },
       ],
       { session },
     );
 
+    // Link appointment to visitor if visitor exists
+    if (visitor) {
+      await Visitor.findByIdAndUpdate(
+        visitor._id,
+        { $push: { appointments: appointment[0]._id } },
+        { session },
+      );
+    }
+
     await session.commitTransaction();
     session.endSession();
 
-    // ✅ Generate temporary token for visitor
+    // ✅ Generate temporary token for visitor (backward compatibility)
     const tempToken = generateTempToken(appointment[0]._id, fullName);
 
     res.status(201).json({
+      success: true,
       appointment: appointment[0],
       tempToken,
+      visitor: visitor
+        ? {
+            _id: visitor._id,
+            fullName: visitor.fullName,
+            email: visitor.email,
+            phone: visitor.phone,
+            role: visitor.role,
+          }
+        : null,
+      visitorToken, // ✅ Full JWT token for visitor dashboard login
     });
   } catch (error) {
     await session.abortTransaction();

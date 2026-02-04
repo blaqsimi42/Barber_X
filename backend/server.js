@@ -6,6 +6,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import workerRoutes from "./routes/workerRoutes.js";
 import cutRoutes from "./routes/cutRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
+import visitorRoutes from "./routes/visitorRoutes.js";
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/worker", workerRoutes);
 app.use("/api/cuts", cutRoutes);
 app.use("/api/appointments", appointmentRoutes);
+app.use("/api/visitors", visitorRoutes);
 
 // 404 handler
 app.use((req, res, next) => {
