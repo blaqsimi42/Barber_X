@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Admin from "../models/adminModel.js";
 import Worker from "../models/workerModel.js";
+import Appointment from "../models/appointmentModel.js";
 import { generateToken } from "../utils/generateToken.js";
 
 /**
@@ -112,6 +113,9 @@ export const updateWorkerProfile = asyncHandler(async (req, res) => {
     throw new Error("Worker not found");
   }
 
+  // Keep old name to update any related appointment records
+  const oldName = worker.name;
+
   // Update allowed fields only
   worker.name = req.body.name || worker.name;
   worker.email = req.body.email || worker.email;
@@ -121,6 +125,14 @@ export const updateWorkerProfile = asyncHandler(async (req, res) => {
   }
 
   const updatedWorker = await worker.save();
+
+  // If the worker changed their name, update appointments that recorded the old name
+  if (req.body.name && req.body.name !== oldName) {
+    await Appointment.updateMany(
+      { workerName: oldName },
+      { $set: { workerName: updatedWorker.name } },
+    );
+  }
 
   res.status(200).json({
     _id: updatedWorker._id,

@@ -25,7 +25,15 @@ export const bookAppointment = asyncHandler(async (req, res) => {
     throw new ErrorResponse("All fields are required", 400);
   }
 
-  const appointmentDateObj = new Date(appointmentDate);
+  // Parse date-only strings (YYYY-MM-DD) as local date to avoid timezone shifts
+  let appointmentDateObj;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(appointmentDate)) {
+    const [y, m, d] = appointmentDate.split("-").map(Number);
+    appointmentDateObj = new Date(y, m - 1, d);
+  } else {
+    appointmentDateObj = new Date(appointmentDate);
+  }
+
   if (isNaN(appointmentDateObj.getTime())) {
     throw new ErrorResponse("Invalid appointmentDate", 400);
   }
@@ -40,8 +48,23 @@ export const bookAppointment = asyncHandler(async (req, res) => {
   }
 
   // Validate time format HH:MM
-  if (!/^\d{2}:\d{2}$/.test(appointmentTime)) {
-    throw new ErrorResponse("Invalid appointmentTime format. Use HH:MM", 400);
+  // Validate time format H:MM or HH:MM and ensure valid hour/minute ranges
+  if (!/^\d{1,2}:\d{2}$/.test(appointmentTime)) {
+    throw new ErrorResponse(
+      "Invalid appointmentTime format. Use H:MM or HH:MM",
+      400,
+    );
+  }
+  const [hourNum, minuteNum] = appointmentTime.split(":").map(Number);
+  if (
+    Number.isNaN(hourNum) ||
+    Number.isNaN(minuteNum) ||
+    hourNum < 0 ||
+    hourNum > 23 ||
+    minuteNum < 0 ||
+    minuteNum > 59
+  ) {
+    throw new ErrorResponse("Invalid appointmentTime value", 400);
   }
 
   const cut = await Cut.findById(cutId);
@@ -51,12 +74,35 @@ export const bookAppointment = asyncHandler(async (req, res) => {
 
   const appointmentTimeMinutes = timeToMinutes(appointmentTime);
 
+  // If booking for today, ensure time is not in the past (give a small buffer)
+  const now = new Date();
+  const todayLocal = new Date();
+  todayLocal.setHours(0, 0, 0, 0);
+  const selectedLocal = new Date(appointmentDateObj);
+  selectedLocal.setHours(0, 0, 0, 0);
+  if (selectedLocal.getTime() === todayLocal.getTime()) {
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const minAllowed = currentMinutes + 1; // 1 minute buffer
+    if (appointmentTimeMinutes < minAllowed) {
+      throw new ErrorResponse(
+        "Appointment time must be at least 1 minute from now",
+        400,
+      );
+    }
+  }
+
   // Transaction-safe bench calculation
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
+    // Query by date range (start of day → next day) to avoid exact Date equality / timezone issues
+    const startOfDay = new Date(appointmentDateObj);
+    startOfDay.setHours(0, 0, 0, 0);
+    const nextDay = new Date(startOfDay);
+    nextDay.setDate(startOfDay.getDate() + 1);
+
     const existingAppointments = await Appointment.find({
-      appointmentDate: appointmentDateObj,
+      appointmentDate: { $gte: startOfDay, $lt: nextDay },
       status: "pending",
     }).session(session);
 
@@ -178,11 +224,16 @@ export const updateAppointmentStatus = asyncHandler(async (req, res) => {
   appointment.status = status;
 
   if (status === "completed") {
+    // record name (for display) and authoritative id/role for relations
     appointment.workerName =
       req.user?.name || req.worker?.name || req.admin?.name || "Unknown";
     appointment.completedAt = new Date();
+    appointment.completedById = req.user?._id || null;
+    appointment.completedByRole = req.role || null;
   } else {
     appointment.completedAt = null;
+    appointment.completedById = null;
+    appointment.completedByRole = null;
   }
 
   await appointment.save();

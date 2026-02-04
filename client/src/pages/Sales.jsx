@@ -24,7 +24,11 @@ const Sales = () => {
   const completedAppointments = useMemo(() => {
     let filtered = appointments.filter((a) => a.status === "completed");
     if (user.role === "worker") {
-      filtered = filtered.filter((a) => a.workerName === user.name);
+      filtered = filtered.filter((a) =>
+        a.completedById
+          ? String(a.completedById) === String(user._id)
+          : a.workerName === user.name,
+      );
     }
     return filtered;
   }, [appointments, user]);

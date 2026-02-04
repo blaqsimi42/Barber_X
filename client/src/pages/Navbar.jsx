@@ -82,7 +82,7 @@ const Navbar = () => {
         {/* Brand */}
         <RouterLink
           to="/"
-          className="text-xl font-semibold tracking-tight md:ml-14 text-indigo-600"
+          className="text-xl font-semibold tracking-tight md:ml-14 md:mr-5 lg:mr-0 text-indigo-600"
         >
           KlaudCuts
         </RouterLink>

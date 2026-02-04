@@ -88,11 +88,19 @@ const Sidebar = ({ onClose }) => {
 
   if (role === "worker") {
     newAppointments = allAppointments.filter(
-      (a) => a.status === "pending" && a.workerName === user?.name,
+      (a) =>
+        a.status === "pending" &&
+        (a.completedById
+          ? String(a.completedById) === String(user?._id)
+          : a.workerName === user?.name),
     ).length;
 
     totalSales = allAppointments.filter(
-      (a) => a.status === "completed" && a.workerName === user?.name,
+      (a) =>
+        a.status === "completed" &&
+        (a.completedById
+          ? String(a.completedById) === String(user?._id)
+          : a.workerName === user?.name),
     ).length;
   }
 

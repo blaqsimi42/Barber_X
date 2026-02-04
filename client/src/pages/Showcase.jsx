@@ -23,7 +23,7 @@ const Showcase = () => {
   const [selectedCut, setSelectedCut] = useState(null);
   const [form, setForm] = useState({
     fullName: "",
-    appointmentDate: new Date().toISOString().split("T")[0], // default today
+    appointmentDate: new Date().toISOString().split("T")[0], // default today (will be normalized below)
     appointmentTime: "",
   });
 
@@ -68,11 +68,24 @@ const Showcase = () => {
 
   // Disable past times for today
   const getMinTime = () => {
-    const today = new Date().toISOString().split("T")[0];
+    const toLocalDate = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    };
+
+    const today = toLocalDate(new Date());
     if (form.appointmentDate === today) {
       const now = new Date();
-      const hours = String(now.getHours()).padStart(2, "0");
-      const minutes = String(now.getMinutes() + 1).padStart(2, "0"); // +1 min buffer
+      let mins = now.getMinutes() + 1; // +1 min buffer
+      let hrs = now.getHours();
+      if (mins >= 60) {
+        mins -= 60;
+        hrs = (hrs + 1) % 24;
+      }
+      const hours = String(hrs).padStart(2, "0");
+      const minutes = String(mins).padStart(2, "0");
       return `${hours}:${minutes}`;
     }
     return "00:00";
@@ -113,9 +126,16 @@ const Showcase = () => {
       setAppointmentData(response.appointment || response);
       setShowSuccess(true);
       setSelectedCut(null);
+      const toLocalDate = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+      };
+
       setForm({
         fullName: "",
-        appointmentDate: new Date().toISOString().split("T")[0],
+        appointmentDate: toLocalDate(new Date()),
         appointmentTime: "",
       });
     } catch (err) {
@@ -153,7 +173,7 @@ const Showcase = () => {
         onClick={handleBack}
       >
         <ArrowLeft size={20} />
-        <span className="font-medium">Back to Landing Page</span>
+        <span className="font-medium bg-indigo-600 text-white px-3 py-1 rounded-full">Back</span>
       </div>
 
       <h2 className="text-3xl font-bold text-indigo-600 text-center mb-12">

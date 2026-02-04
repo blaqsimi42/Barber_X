@@ -57,7 +57,7 @@ export const workerApiSlice = apiSlice.injectEndpoints({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: ["Worker"],
+      invalidatesTags: ["Worker", "Appointments"],
     }),
   }),
 });

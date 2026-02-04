@@ -36,7 +36,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: ["Admin"],
+      invalidatesTags: ["Admin", "Appointments"],
     }),
   }),
 });

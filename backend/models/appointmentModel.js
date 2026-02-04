@@ -48,9 +48,24 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    
+
     completedAt: {
       type: Date,
+      default: null,
+    },
+    // New: store who completed the appointment by id/role (more reliable than name-only)
+    completedById: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+    completedByRole: {
+      type: String,
+      enum: ["admin", "worker"],
+      default: null,
+    },
+    // Optional visitor id if you later associate bookings with a visitor record
+    visitorId: {
+      type: mongoose.Schema.Types.ObjectId,
       default: null,
     },
   },
@@ -60,7 +75,7 @@ const appointmentSchema = new mongoose.Schema(
 // Prevent double booking
 appointmentSchema.index(
   { appointmentDate: 1, appointmentTime: 1 },
-  { unique: true }
+  { unique: true },
 );
 
 // Performance indexes

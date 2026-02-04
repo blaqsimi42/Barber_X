@@ -150,22 +150,63 @@ const LandingPage = () => {
   }, [cuts]);
 
   useEffect(() => {
-    [story1Ref.current, story2Ref.current].forEach((el) => {
+    [story1Ref.current, story2Ref.current].forEach((el, index) => {
       if (!el) return;
+      const imageEl = el.querySelector("img");
+      const textEl = el.querySelector('[class*="text-white"]')?.parentElement;
+
       gsap.fromTo(
         el,
-        { opacity: 0, y: 60, scale: 0.96 },
+        { opacity: 0, y: 40 },
         {
           opacity: 1,
           y: 0,
-          scale: 1,
-          duration: 1,
+          duration: 0.8,
           scrollTrigger: {
             trigger: el,
-            start: "top 85%",
+            start: "top 80%",
+            toggleActions: "play none none reverse",
           },
         },
       );
+
+      if (imageEl) {
+        gsap.fromTo(
+          imageEl,
+          {
+            y: 0,
+          },
+          {
+            y: -40,
+            scrollTrigger: {
+              trigger: el,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 1,
+              onUpdate: (self) => {
+                gsap.set(imageEl, { y: self.getVelocity() * -0.1 });
+              },
+            },
+          },
+        );
+      }
+
+      if (textEl) {
+        gsap.fromTo(
+          textEl,
+          { opacity: 0, x: index === 0 ? -40 : 40 },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 1,
+            scrollTrigger: {
+              trigger: el,
+              start: "top 80%",
+              toggleActions: "play none none reverse",
+            },
+          },
+        );
+      }
     });
   }, []);
 
@@ -200,12 +241,12 @@ const LandingPage = () => {
       {/* Hero Section */}
       <section
         id="hero"
-        className="min-h-screen flex flex-col justify-center items-center text-center bg-[#faf9f7] relative overflow-hidden p-4 md:p-4 lg:p-8"
+        className="min-h-screen flex flex-col justify-center items-center text-center bg-gradient-to-br from-[#faf9f7] to-white relative overflow-hidden px-4 md:px-8 lg:px-12"
       >
         <Navbar />
         <div
           ref={heroDivRef}
-          className="relative w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 lg:mt-16"
+          className="relative w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200 lg:mt-20"
           style={{
             transform: `translateY(${heroParallax}px)`,
             opacity: heroOpacity,
@@ -215,42 +256,50 @@ const LandingPage = () => {
           <img
             ref={heroImageRef}
             src="img1.jpg"
-            alt="Barber at work"
-            className="w-full h-150.5 md:h-140.5 object-cover"
+            alt="Barber cutting hair in shop"
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover"
           />
-          <div className="absolute bottom-12 left-10 text-left">
+          <div className="absolute bottom-16 left-8 md:left-12 text-left">
             <h1
               ref={heroTextRef}
-              className="text-4xl md:text-5xl font-semibold text-gray-100 leading-tight"
+              className="text-4xl text-white md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight tracking-tight"
             >
               Designed to Define <br />
-              <span className="text-indigo-500 font-bold">Your Style</span>
+              <span className="text-indigo-600 bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent">
+                Your Style
+              </span>
             </h1>
             <a
               ref={heroButtonRef}
               href="#cuts"
-              className="group inline-block mt-6 bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-indigo-700 border-2 border-white transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              className="group inline-flex items-center gap-2 mt-8 bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:bg-indigo-700 transition-all duration-300 hover:scale-105 hover:shadow-2xl"
             >
-              Explore Cuts →
+              Explore Cuts <ArrowRight size={20} />
             </a>
           </div>
+
           <div
             ref={cardRef}
-            className="absolute sm:top-74 md:top-83 right-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 w-72 md:w-80 border border-white/20"
+            className="absolute top-20 md:top-12 lg:top-78 lg:left-197 left-5 md:left-98 bg-white rounded-2xl shadow-2xl p-6 md:p-7 sm:w-50 lg:w-80 md:w-96 border border-indigo-100"
           >
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col gap-3">
               {[
-                "Professional barbers with expertise",
-                "Modern, stylish haircuts",
+                "Professional barbers",
+                "Modern stylish haircuts",
                 "Clean and luxury environment",
                 "Timely and efficient service",
               ].map((point, i) => (
                 <li
                   key={i}
                   ref={(el) => (cardItemsRef.current[i] = el)}
-                  className="flex items-center gap-2 text-gray-700"
+                  className="flex items-start gap-3 text-gray-700 text-sm md:text-base"
                 >
-                  <CircleCheck size={16} className="text-indigo-600" /> {point}
+                  <CircleCheck
+                    size={20}
+                    className="text-indigo-600 flex-shrink-0 mt-0.5"
+                  />
+                  <span className="font-medium">{point}</span>
                 </li>
               ))}
             </ul>
@@ -262,85 +311,78 @@ const LandingPage = () => {
       <section
         id="cuts"
         ref={cutsDivRef}
-        className="bg-white overflow-hidden w-full sm:h-[160rem] md:h-190 lg:min-h-screen"
+        className="bg-gradient-to-b from-white via-indigo-50 to-white overflow-visible w-full h-auto flex flex-col pb-24"
       >
-        <div ref={cutsInnerRef}>
-          <div className="text-center mb-2 w-full">
-            <h2 className="text-4xl font-bold text-indigo-600">
+        <div ref={cutsInnerRef} className="w-full flex flex-col">
+          <div className="text-center py-6 px-4">
+            <h2 className="text-3xl md:text-3xl font-bold mb-1 text-indigo-600">
               Our Signature Cuts
             </h2>
-            <p className="text-gray-500 text-lg">
+            <p className="text-gray-600 text-sm md:text-base font-medium">
               Handpicked styles loved by our clients
             </p>
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center h-[80vh]">
-              <Loader className="animate-spin w-10 h-10 text-indigo-600" />
+            <div className="flex items-center justify-center h-80">
+              <Loader className="animate-spin w-12 h-12 text-indigo-600" />
             </div>
           ) : isError ? (
-            <p className="text-center text-red-500">Failed to load cuts</p>
+            <p className="text-center text-red-500 text-lg font-semibold">
+              Failed to load cuts
+            </p>
           ) : cuts?.data?.length === 0 ? (
-            <p className="text-center text-gray-500">No cuts available yet.</p>
+            <p className="text-center text-gray-500 text-lg">
+              No cuts available yet.
+            </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-10 lg:px-16">
-              {cuts.data.slice(0, 3).map((cut, i) => (
-                <div
-                  key={cut._id}
-                  ref={(el) => (cutsGridRef.current[i] = el)}
-                  className="bg-white rounded-3xl shadow-lg overflow-hidden border border-indigo-100 flex flex-col justify-between group hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 mb-2"
-                >
-                  <div className="overflow-hidden">
-                    <img
-                      src={cut.imageUrl}
-                      alt={cut.name}
-                      className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
-                  </div>
-                  <div className="p-6 flex flex-col justify-between">
-                    <div className="flex flex-col text-left mb-4">
-                      <h3 className="font-bold text-xl text-indigo-700 mb-1 flex items-center gap-2">
-                        <Scissors size={18} /> {cut.name}
-                      </h3>
-                      <p className="text-gray-600 text-sm line-clamp-2">
-                        {cut.description ||
-                          "A premium style cut for modern looks."}
-                      </p>
+            <div className="w-full px-4 md:px-6 lg:px-12 flex-1 flex flex-col">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-16 lg:gap-12 justify-items-center">
+                {cuts.data.slice(0, 3).map((cut, i) => (
+                  <div
+                    key={cut._id}
+                    ref={(el) => (cutsGridRef.current[i] = el)}
+                    className="w-full max-w-xs sm:max-w-none sm:w-80 md:w-64 lg:w-80 bg-white rounded-3xl shadow-lg overflow-hidden border border-indigo-100 flex flex-col justify-between group hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 h-98  md:h-80 lg:h-96"
+                  >
+                    <div className="overflow-hidden h-65  md:h-44 lg:h-58">
+                      <img
+                        src={cut.imageUrl}
+                        alt={cut.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 "
+                      />
                     </div>
+                    <div className="p-5 sm:p-2 md:p-3 flex flex-col justify-between flex-1 mb-5">
+                      <div>
+                        <h3 className="font-bold text-xs md:text-sm text-indigo-700 flex items-center gap-1 line-clamp-1">
+                          <Scissors size={14} /> {cut.name}
+                        </h3>
+                        <p className="text-gray-600 text-xs line-clamp-1 leading-tight">
+                          {cut.description || "Premium cut"}
+                        </p>
+                      </div>
 
-                    <div className="mt-auto flex justify-between items-center border-t border-indigo-100 pt-4 gap-2">
-                      <p className="text-lg font-semibold text-indigo-600">
-                        ₦{cut.price}
-                      </p>
-
-                      {/* Mobile Book Button */}
-                      <Link
-                        to="/showcase"
-                        className="md:hidden bg-indigo-600 text-white px-4 py-1 rounded-lg hover:bg-indigo-700 transition-all text-sm flex items-center justify-center"
-                      >
-                        Book
-                      </Link>
-
-                      {/* Desktop Style Name */}
-                      <span className="hidden md:inline text-gray-500 text-sm italic">
-                        {cut.name}
-                      </span>
+                      <div className="flex items-center justify-between border-t border-indigo-100 pt-1 text-xs">
+                        <p className="font-bold text-indigo-600 text-xs">
+                          ₦{cut.price}
+                        </p>
+                        <span className="text-gray-400 text-xs italic line-clamp-1">
+                          Premium
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
 
               {/* Main Showcase Button */}
-              <div className="flex justify-center w-full">
-                <div className="mt-2 md:ml-150 lg:ml-186">
-                  <Link
-                    to="/showcase"
-                    className="inline-flex items-center justify-center gap-2 bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold text-lg shadow-lg border-2 border-indigo-500 hover:bg-indigo-50 hover:scale-105 transition-all duration-300"
-                  >
-                    Book
-                    <ArrowRight />
-                  </Link>
-                </div>
+              <div className="flex justify-center w-full mt-4 md:mt-6 px-4">
+                <Link
+                  to="/showcase"
+                  className="inline-flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-semibold text-sm md:text-base shadow-lg hover:bg-indigo-700 hover:scale-105 transition-all duration-300 w-full sm:w-auto"
+                >
+                  View All Cuts
+                  <ArrowRight size={18} />
+                </Link>
               </div>
             </div>
           )}
@@ -350,7 +392,7 @@ const LandingPage = () => {
       {/* About Section */}
       <section
         id="about"
-        className="relative bg-[#0a0a0a] overflow-hidden py-20 w-full"
+        className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden py-24 md:py-32 w-full mt-8"
       >
         {[story1Ref, story2Ref].map((ref, index) => {
           const story = stories[index];
@@ -358,25 +400,28 @@ const LandingPage = () => {
             <div
               key={story.id}
               ref={ref}
-              className={`flex flex-col md:flex-row ml-12 justify-center items-center gap-12 mb-20 w-3/4 ${
+              className={`flex flex-col md:flex-row gap-12 md:gap-16 px-6 md:px-12 lg:px-20 mb-24 md:mb-32 max-w-7xl mx-auto ${
                 story.imagePosition === "left" ? "" : "md:flex-row-reverse"
               }`}
             >
-              <div className="md:w-2/2">
+              <div className="w-full md:w-1/2">
                 <img
                   src={story.image}
                   alt={story.title}
-                  className="rounded-2xl shadow-2xl object-cover w-full h-96"
+                  loading="lazy"
+                  className="rounded-3xl shadow-2xl object-cover w-full h-96 md:h-[500px] lg:h-[550px]"
                 />
               </div>
-              <div className="md:w-1/2 lg:w-30px text-white space-y-4">
-                <span className="text-indigo-500 font-bold text-xs tracking-[0.3em] uppercase">
+              <div className="w-full md:w-1/2 text-white space-y-6 flex flex-col justify-center">
+                <span className="text-indigo-400 font-bold text-xs tracking-[0.3em] uppercase">
                   Chapter {index === 0 ? "01" : "02"}
                 </span>
-                <h3 className="text-3xl md:text-5xl font-bold">
+                <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
                   {story.title}
                 </h3>
-                <p className="text-gray-300 text-lg md:text-xl">{story.text}</p>
+                <p className="text-gray-300 text-base md:text-lg lg:text-xl leading-relaxed">
+                  {story.text}
+                </p>
               </div>
             </div>
           );
@@ -386,28 +431,30 @@ const LandingPage = () => {
       {/* Location Section */}
       <section
         id="location"
-        className="relative h-screen bg-linear-to-br from-white via-indigo-50 to-white overflow-hidden"
+        className="relative min-h-screen bg-gradient-to-br from-white via-indigo-50 to-white overflow-hidden flex items-center justify-center py-20 md:py-32"
       >
-        <div className="flex items-center justify-center h-full px-4 md:px-8">
+        <div className="px-4 md:px-8 w-full">
           <div
             ref={locationCardRef}
-            className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 border-2 border-indigo-100 text-center space-y-6"
+            className="w-full max-w-2xl mx-auto bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-indigo-100 text-center space-y-8"
           >
             <div className="flex justify-center">
-              <div className="bg-indigo-600 rounded-full p-5 shadow-md">
-                <MapPin size={42} className="text-white" />
+              <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-full p-6 shadow-xl">
+                <MapPin size={48} className="text-white" />
               </div>
             </div>
 
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
-              Visit Our Shop
-            </h3>
-            <p className="text-lg text-gray-700 font-medium">
-              12 Kings Avenue, Lekki Phase 1, Lagos, Nigeria
-            </p>
+            <div className="space-y-2">
+              <h3 className="text-3xl md:text-4xl font-bold text-gray-900">
+                Visit Our Shop
+              </h3>
+              <p className="text-lg md:text-xl text-gray-700 font-semibold leading-relaxed">
+                12 Kings Avenue, Lekki Phase 1, Lagos, Nigeria
+              </p>
+            </div>
 
             {/* Hours Section */}
-            <div className="mt-4 bg-indigo-50 rounded-xl p-4 space-y-3">
+            <div className="mt-6 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl p-6 md:p-8 space-y-4 border border-indigo-100">
               {[
                 { label: "Working Hours", value: "9:00 AM" },
                 { label: "Closing Hours", value: "8:00 PM" },
@@ -415,26 +462,30 @@ const LandingPage = () => {
               ].map((hour) => (
                 <div
                   key={hour.label}
-                  className="flex justify-between items-center text-gray-700"
+                  className="flex justify-between items-center text-gray-800 pb-3 last:pb-0 border-b border-indigo-200 last:border-b-0"
                 >
-                  <div className="flex items-center gap-2 font-medium">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-indigo-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                  <div className="flex items-center gap-3 font-semibold">
+                    <div className="bg-indigo-600 rounded-full p-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
                     {hour.label}
                   </div>
-                  <span className="font-bold">{hour.value}</span>
+                  <span className="font-bold text-indigo-600 text-lg">
+                    {hour.value}
+                  </span>
                 </div>
               ))}
             </div>
@@ -445,16 +496,24 @@ const LandingPage = () => {
       {/* Footer */}
       <footer
         id="contact"
-        className="bg-indigo-600 text-white py-10 text-center space-y-3"
+        className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-12 md:py-16 text-center space-y-4 border-t-2 border-indigo-500"
       >
-        <h3 className="text-xl font-semibold flex justify-center items-center gap-2">
-          <Phone size={18} /> Contact Us
-        </h3>
-        <p>Email: hello@klaudcuts.com</p>
-        <p>Phone: +234 801 234 5678</p>
-        <p className="text-indigo-200 text-sm mt-4">
-          © {new Date().getFullYear()} Klaud Cuts — All rights reserved.
-        </p>
+        <div className="max-w-4xl mx-auto px-4">
+          <h3 className="text-2xl md:text-3xl font-bold flex justify-center items-center gap-2 mb-6">
+            <Phone size={24} /> Contact Us
+          </h3>
+          <div className="space-y-2 mb-6">
+            <p className="text-lg md:text-xl">
+              Email: <span className="font-semibold">hello@klaudcuts.com</span>
+            </p>
+            <p className="text-lg md:text-xl">
+              Phone: <span className="font-semibold">+234 801 234 5678</span>
+            </p>
+          </div>
+          <p className="text-indigo-200 text-sm md:text-base mt-6 pt-6 border-t border-indigo-500">
+            © {new Date().getFullYear()} Klaud Cuts — All rights reserved.
+          </p>
+        </div>
       </footer>
     </>
   );
