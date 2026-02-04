@@ -66,6 +66,7 @@ const Bench = () => {
 
   const audioRef = useRef(null);
   const prevCountRef = useRef(0);
+  const [timeFilter, setTimeFilter] = useState("today");
 
   const { data: allAppointments = [], isLoading } = useGetAllAppointmentsQuery(
     undefined,
@@ -76,20 +77,72 @@ const Bench = () => {
   );
 
   /* -----------------------------
+     Filter appointments by time period
+  ----------------------------- */
+  const getFilteredAppointments = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    return allAppointments.filter((app) => {
+      if (!["pending", "completed", "cancelled"].includes(app.status)) {
+        return false;
+      }
+
+      const appDate = new Date(app.appointmentDate);
+      const appDateOnly = new Date(
+        appDate.getFullYear(),
+        appDate.getMonth(),
+        appDate.getDate(),
+      );
+
+      switch (timeFilter) {
+        case "today":
+          return appDateOnly.getTime() === today.getTime();
+        case "month":
+          return (
+            appDate.getFullYear() === now.getFullYear() &&
+            appDate.getMonth() === now.getMonth()
+          );
+        case "year":
+          return appDate.getFullYear() === now.getFullYear();
+        default:
+          return true;
+      }
+    });
+  }, [allAppointments, timeFilter]);
+
+  /* -----------------------------
      Group Appointments by Date
   ----------------------------- */
   const groupedByDate = useMemo(() => {
-    const filtered = allAppointments.filter((a) =>
-      ["pending", "completed", "cancelled"].includes(a.status),
-    );
-
-    return filtered.reduce((acc, app) => {
+    const grouped = getFilteredAppointments.reduce((acc, app) => {
       const date = new Date(app.appointmentDate).toLocaleDateString();
       if (!acc[date]) acc[date] = [];
       acc[date].push(app);
       return acc;
     }, {});
-  }, [allAppointments]);
+
+    // Sort dates with today first
+    const now = new Date();
+    const todayStr = now.toLocaleDateString();
+    const sorted = {};
+
+    if (grouped[todayStr]) {
+      sorted[todayStr] = grouped[todayStr];
+    }
+
+    Object.keys(grouped)
+      .sort((a, b) => new Date(b) - new Date(a))
+      .forEach((date) => {
+        if (date !== todayStr) {
+          sorted[date] = grouped[date];
+        }
+      });
+
+    return sorted;
+  }, [getFilteredAppointments]);
 
   const [queue, setQueue] = useState({});
   const [expandedDates, setExpandedDates] = useState(() => {
@@ -151,9 +204,32 @@ const Bench = () => {
       <audio ref={audioRef} src="/sounds/bench-notify.mp3" />
 
       <div className="p-6 space-y-8 mt-8">
-        <h1 className="text-3xl font-bold text-indigo-600">
-          Bench ({allAppointments.length})
-        </h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-indigo-600">
+            Bench ({getFilteredAppointments.length})
+          </h1>
+
+          {/* Time Filter Buttons */}
+          <div className="flex gap-2">
+            {[
+              { label: "Today", value: "today" },
+              { label: "This Month", value: "month" },
+              { label: "This Year", value: "year" },
+            ].map((filter) => (
+              <button
+                key={filter.value}
+                onClick={() => setTimeFilter(filter.value)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  timeFilter === filter.value
+                    ? "bg-indigo-600 text-white"
+                    : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {Object.keys(queue).length === 0 && (
           <p className="text-gray-500">No bench appointments.</p>
