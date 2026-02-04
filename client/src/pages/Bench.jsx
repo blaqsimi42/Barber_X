@@ -203,14 +203,14 @@ const Bench = () => {
     <Layout>
       <audio ref={audioRef} src="/sounds/bench-notify.mp3" />
 
-      <div className="p-6 space-y-8 mt-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-indigo-600">
+      <div className="p-4 sm:p-6 space-y-8 mt-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-indigo-600">
             Bench ({getFilteredAppointments.length})
           </h1>
 
           {/* Time Filter Buttons */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
             {[
               { label: "Today", value: "today" },
               { label: "This Month", value: "month" },
@@ -219,7 +219,7 @@ const Bench = () => {
               <button
                 key={filter.value}
                 onClick={() => setTimeFilter(filter.value)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition ${
                   timeFilter === filter.value
                     ? "bg-indigo-600 text-white"
                     : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
