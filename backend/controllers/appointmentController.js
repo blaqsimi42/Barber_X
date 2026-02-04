@@ -83,25 +83,21 @@ export const bookAppointment = asyncHandler(async (req, res) => {
 
   const appointmentTimeMinutes = timeToMinutes(appointmentTime);
 
-  // If booking for today, ensure time is not in the past (give a 5 minute buffer)
+  // Check if booking for today or past date
   const now = new Date();
   const todayLocal = new Date();
   todayLocal.setHours(0, 0, 0, 0);
   const selectedLocal = new Date(appointmentDateObj);
   selectedLocal.setHours(0, 0, 0, 0);
+
+  // If booking for today, ensure time is not in the past
   if (selectedLocal.getTime() === todayLocal.getTime()) {
-    // Create appointment datetime in local timezone for accurate comparison
     const [appHour, appMinute] = appointmentTime.split(":").map(Number);
     const appointmentDateTime = new Date();
     appointmentDateTime.setHours(appHour, appMinute, 0, 0);
 
-    // Ensure appointment time is at least 5 minutes from now
-    const bufferTime = new Date(now.getTime() + 5 * 60000); // 5 minutes from now
-    if (appointmentDateTime < bufferTime) {
-      throw new ErrorResponse(
-        "Appointment time must be at least 5 minutes from now",
-        400,
-      );
+    if (appointmentDateTime < now) {
+      throw new ErrorResponse("Can't select past date/time", 400);
     }
   }
 
@@ -125,14 +121,8 @@ export const bookAppointment = asyncHandler(async (req, res) => {
     );
 
     if (existingTimes.length > 0) {
-      const latestTime = Math.max(...existingTimes);
-      if (appointmentTimeMinutes <= latestTime) {
-        throw new ErrorResponse(
-          `Time taken. Choose a time later than ${String(
-            Math.floor(latestTime / 60),
-          ).padStart(2, "0")}:${String(latestTime % 60).padStart(2, "0")}`,
-          400,
-        );
+      if (existingTimes.includes(appointmentTimeMinutes)) {
+        throw new ErrorResponse("Time already taken", 400);
       }
     }
 
