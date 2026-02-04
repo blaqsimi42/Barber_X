@@ -245,7 +245,7 @@ const Appointments = () => {
       toast.success("Appointment booked successfully!");
       setTimeout(() => {
         setShowTicket(false);
-        navigate("/appointments");
+        navigate("/visitor-dashboard");
       }, 3000);
     } catch (err) {
       toast.error(err?.data?.message || "Failed to book appointment");
