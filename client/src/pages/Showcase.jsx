@@ -22,6 +22,8 @@ const Showcase = () => {
   const { data, isLoading, isError } = useGetCutsQuery();
   const [createAppointment, { isLoading: isBooking }] =
     useBookAppointmentMutation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [selectedCut, setSelectedCut] = useState(null);
   const [form, setForm] = useState({
