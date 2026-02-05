@@ -12,6 +12,9 @@ import {
 import * as htmlToImage from "html-to-image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { setVisitor } from "../redux/features/auth/authSlice";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -123,7 +126,8 @@ const Showcase = () => {
         cutId: selectedCut._id,
       }).unwrap();
 
-      setAppointmentData(response.appointment || response);
+      const appointment = response.appointment || response;
+      setAppointmentData(appointment);
       setShowSuccess(true);
       setSelectedCut(null);
       const toLocalDate = (d) => {
@@ -138,6 +142,19 @@ const Showcase = () => {
         appointmentDate: toLocalDate(new Date()),
         appointmentTime: "",
       });
+
+      // If backend issued a temporary token for visitor session, persist it and set visitor in Redux
+      if (response.tempToken) {
+        const visitorName = form.fullName;
+        localStorage.setItem("visitorToken", response.tempToken);
+        localStorage.setItem("visitorName", visitorName);
+        dispatch(setVisitor({ name: visitorName, token: response.tempToken }));
+
+        // Navigate to visitor dashboard after showing success briefly
+        setTimeout(() => {
+          navigate("/visitor-dashboard");
+        }, 2500);
+      }
     } catch (err) {
       toast.error(err?.data?.message || "Failed to book appointment");
     }
@@ -173,7 +190,9 @@ const Showcase = () => {
         onClick={handleBack}
       >
         <ArrowLeft size={20} />
-        <span className="font-medium bg-indigo-600 text-white px-3 py-1 rounded-full">Back</span>
+        <span className="font-medium bg-indigo-600 text-white px-3 py-1 rounded-full">
+          Back
+        </span>
       </div>
 
       <h2 className="text-3xl font-bold text-indigo-600 text-center mb-12">
