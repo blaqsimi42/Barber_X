@@ -126,12 +126,6 @@ export const bookAppointment = asyncHandler(async (req, res) => {
       }
     }
 
-    const benchCount = existingAppointments.filter(
-      (a) => timeToMinutes(a.appointmentTime) < appointmentTimeMinutes,
-    ).length;
-
-    const benchNumber = benchCount + 1;
-
     // ✅ Auto-register or fetch existing visitor
     let visitor = null;
     let visitorToken = null;
@@ -169,7 +163,6 @@ export const bookAppointment = asyncHandler(async (req, res) => {
           price: cut.price,
           appointmentDate: appointmentDateObj,
           appointmentTime,
-          benchNumber,
           status: "pending",
           visitorId: visitor?._id || null,
         },
@@ -189,12 +182,32 @@ export const bookAppointment = asyncHandler(async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
+    // ✅ Calculate bench number for the new appointment
+    const allAppointmentsForDate = await Appointment.find({
+      appointmentDate: { $gte: startOfDay, $lt: nextDay },
+      status: "pending",
+    });
+
+    allAppointmentsForDate.sort(
+      (a, b) =>
+        timeToMinutes(a.appointmentTime) - timeToMinutes(b.appointmentTime),
+    );
+
+    const benchIndex = allAppointmentsForDate.findIndex((a) =>
+      a._id.equals(appointment[0]._id),
+    );
+    const benchNumber = benchIndex >= 0 ? benchIndex + 1 : 0;
+
+    // Add bench number to response
+    const appointmentWithBench = appointment[0].toObject();
+    appointmentWithBench.benchNumber = benchNumber;
+
     // ✅ Generate temporary token for visitor (backward compatibility)
     const tempToken = generateTempToken(appointment[0]._id, fullName);
 
     res.status(201).json({
       success: true,
-      appointment: appointment[0],
+      appointment: appointmentWithBench,
       tempToken,
       visitor: visitor
         ? {
@@ -231,7 +244,31 @@ export const getAllAppointments = asyncHandler(async (req, res) => {
     return timeToMinutes(a.appointmentTime) - timeToMinutes(b.appointmentTime);
   });
 
-  res.json(appointments);
+  // Calculate bench numbers dynamically based on date and time order
+  const appointmentsWithBench = appointments.map((app) => {
+    const appObj = app.toObject();
+    
+    // Count how many pending appointments are on the same day with earlier time
+    const sameDate = appointments.filter((a) => {
+      const aDate = new Date(a.appointmentDate);
+      const appDate = new Date(app.appointmentDate);
+      aDate.setHours(0, 0, 0, 0);
+      appDate.setHours(0, 0, 0, 0);
+      return aDate.getTime() === appDate.getTime() && a.status === "pending";
+    });
+
+    sameDate.sort(
+      (a, b) =>
+        timeToMinutes(a.appointmentTime) - timeToMinutes(b.appointmentTime),
+    );
+
+    const benchIndex = sameDate.findIndex((a) => a._id.toString() === app._id.toString());
+    appObj.benchNumber = benchIndex >= 0 ? benchIndex + 1 : 0;
+
+    return appObj;
+  });
+
+  res.json(appointmentsWithBench);
 });
 
 // ----------------------------
@@ -255,7 +292,34 @@ export const getAppointmentsByName = asyncHandler(async (req, res) => {
     return timeToMinutes(a.appointmentTime) - timeToMinutes(b.appointmentTime);
   });
 
-  res.json(appointments);
+  // Get all appointments to calculate bench number
+  const allAppointments = await Appointment.find();
+
+  // Calculate bench numbers dynamically
+  const appointmentsWithBench = appointments.map((app) => {
+    const appObj = app.toObject();
+
+    // Count how many pending appointments are on the same day with earlier time
+    const sameDate = allAppointments.filter((a) => {
+      const aDate = new Date(a.appointmentDate);
+      const appDate = new Date(app.appointmentDate);
+      aDate.setHours(0, 0, 0, 0);
+      appDate.setHours(0, 0, 0, 0);
+      return aDate.getTime() === appDate.getTime() && a.status === "pending";
+    });
+
+    sameDate.sort(
+      (a, b) =>
+        timeToMinutes(a.appointmentTime) - timeToMinutes(b.appointmentTime),
+    );
+
+    const benchIndex = sameDate.findIndex((a) => a._id.toString() === app._id.toString());
+    appObj.benchNumber = benchIndex >= 0 ? benchIndex + 1 : 0;
+
+    return appObj;
+  });
+
+  res.json(appointmentsWithBench);
 });
 
 // ----------------------------

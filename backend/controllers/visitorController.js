@@ -134,8 +134,16 @@ export const cancelVisitorAppointment = asyncHandler(async (req, res) => {
     throw new ErrorResponse("Appointment not found", 404);
   }
 
-  // Verify visitor owns this appointment
-  if (appointment.visitorId?.toString() !== req.user._id.toString()) {
+  // Verify visitor owns this appointment.
+  // Support both registered visitors (req.user._id) and temporary tokens (req.user.id === appointmentId)
+  const isRegisteredVisitor = !!req.user?._id;
+  const isTempVisitor = !!req.user?.id && req.user.id === appointmentId;
+
+  if (isRegisteredVisitor) {
+    if (appointment.visitorId?.toString() !== req.user._id.toString()) {
+      throw new ErrorResponse("Not authorized to cancel this appointment", 403);
+    }
+  } else if (!isTempVisitor) {
     throw new ErrorResponse("Not authorized to cancel this appointment", 403);
   }
 
@@ -186,8 +194,15 @@ export const getVisitorBenchInfo = asyncHandler(async (req, res) => {
     throw new ErrorResponse("Appointment not found", 404);
   }
 
-  // Verify visitor owns this appointment
-  if (appointment.visitorId?.toString() !== req.user._id.toString()) {
+  // Verify visitor owns this appointment. Allow temp-token holders by matching the token's appointment id.
+  const isRegisteredVisitor = !!req.user?._id;
+  const isTempVisitor = !!req.user?.id && req.user.id === appointmentId;
+
+  if (isRegisteredVisitor) {
+    if (appointment.visitorId?.toString() !== req.user._id.toString()) {
+      throw new ErrorResponse("Not authorized to view this appointment", 403);
+    }
+  } else if (!isTempVisitor) {
     throw new ErrorResponse("Not authorized to view this appointment", 403);
   }
 

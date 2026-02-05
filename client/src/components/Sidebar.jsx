@@ -194,6 +194,13 @@ const Sidebar = ({ onClose }) => {
       link: "/appointments",
       badge: newAppointments,
     });
+    // Allow visitors to view bench (their queue position)
+    menuItems.push({
+      label: "Bench",
+      icon: Armchair,
+      link: "/dashboard/bench",
+      badge: 0,
+    });
   }
 
   // ------------------------

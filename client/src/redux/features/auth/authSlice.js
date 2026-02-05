@@ -22,12 +22,27 @@ const authSlice = createSlice({
       localStorage.setItem("user", JSON.stringify(action.payload));
     },
     setVisitor: (state, action) => {
-      // payload = { user: {...}, token }
-      const { user, token } = action.payload;
-      state.user = { ...user, role: "visitor" };
+      // Support payload shapes: { user, token } or { name, token }
+      const payload = action.payload || {};
+      const userFromPayload =
+        payload.user ||
+        (payload.name ? { name: payload.name, fullName: payload.name } : null);
+      const token = payload.token || null;
+
+      state.user = userFromPayload
+        ? { ...userFromPayload, role: "visitor" }
+        : null;
       state.token = token;
-      localStorage.setItem("visitorToken", token);
-      localStorage.setItem("visitorData", JSON.stringify(user));
+
+      if (token) localStorage.setItem("visitorToken", token);
+      if (userFromPayload) {
+        localStorage.setItem("visitorData", JSON.stringify(userFromPayload));
+        // keep legacy key used across the app
+        localStorage.setItem(
+          "visitorName",
+          userFromPayload.name || userFromPayload.fullName || "",
+        );
+      }
     },
     logout: (state) => {
       state.user = null;

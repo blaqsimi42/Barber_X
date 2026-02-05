@@ -9,6 +9,10 @@ import {
   useGetVisitorBenchInfoQuery,
 } from "../redux/api/visitorApiSlice";
 import {
+  useGetAppointmentsByNameQuery,
+  useCancelAppointmentMutation,
+} from "../redux/api/appointmentsApiSlice";
+import {
   Loader,
   Calendar,
   MapPin,
@@ -30,15 +34,32 @@ const VisitorDashboard = () => {
   }, [user, navigate]);
 
   // Fetch visitor data
+  // Helper to detect temporary visitor token (reads JWT payload)
+  const isTempToken = (t) => {
+    try {
+      const payload = JSON.parse(atob(t.split(".")[1]));
+      return !!payload.tempVisitor;
+    } catch {
+      return false;
+    }
+  };
+
+  const usingTempToken = !!token && isTempToken(token);
+
+  // If temp token, use public appointments endpoints; otherwise use visitor-protected endpoints
   const { data: profileData, isLoading: profileLoading } =
     useGetVisitorProfileQuery(undefined, {
-      skip: !token || user?.role !== "visitor",
+      skip: !token || user?.role !== "visitor" || usingTempToken,
     });
 
   const { data: appointmentsData, isLoading: appointmentsLoading } =
-    useGetVisitorAppointmentsQuery(undefined, {
-      skip: !token || user?.role !== "visitor",
-    });
+    usingTempToken
+      ? useGetAppointmentsByNameQuery(localStorage.getItem("visitorName"), {
+          skip: !localStorage.getItem("visitorName"),
+        })
+      : useGetVisitorAppointmentsQuery(undefined, {
+          skip: !token || user?.role !== "visitor",
+        });
 
   const { data: benchData } = useGetVisitorBenchInfoQuery(
     selectedAppointmentId,
@@ -47,12 +68,20 @@ const VisitorDashboard = () => {
     },
   );
 
-  const [cancelAppointment] = useCancelVisitorAppointmentMutation();
+  const [cancelVisitorAppointment] = useCancelVisitorAppointmentMutation();
+  const [cancelPublicAppointment] = useCancelAppointmentMutation();
 
   const handleCancelAppointment = async (appointmentId) => {
     if (window.confirm("Are you sure you want to cancel this appointment?")) {
       try {
-        await cancelAppointment(appointmentId).unwrap();
+        if (usingTempToken) {
+          await cancelPublicAppointment({
+            id: appointmentId,
+            fullName: user?.name || localStorage.getItem("visitorName"),
+          }).unwrap();
+        } else {
+          await cancelVisitorAppointment(appointmentId).unwrap();
+        }
         alert("Appointment cancelled successfully");
       } catch (error) {
         alert("Error cancelling appointment: " + error.data?.message);
