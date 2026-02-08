@@ -121,7 +121,7 @@ const Appointments = () => {
       await cancelAppointment(cancelModal.targetId).unwrap();
       toast.success("Appointment cancelled successfully!");
     } catch {
-      toast.error("Failed to cancel");
+      toast.error("We couldn't cancel the appointment. Please try again.");
     } finally {
       setCancelModal({ open: false, targetId: null, cutName: "" });
     }
@@ -132,7 +132,7 @@ const Appointments = () => {
       await updateStatus({ id, status: "completed" }).unwrap();
       toast.success("Appointment marked as completed");
     } catch {
-      toast.error("Failed to update status");
+      toast.error("We couldn't update the appointment. Please try again.");
     }
   };
 

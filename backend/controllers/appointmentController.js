@@ -176,3 +176,61 @@ export const cancelAppointment = asyncHandler(async (req, res) => {
 
   res.json({ message: "Appointment cancelled successfully", appointment });
 });
+
+// ----------------------------
+// @desc    Create appointment (public)
+// @route   POST /api/appointments
+// @access  Public
+export const createAppointment = asyncHandler(async (req, res) => {
+  const { fullName, appointmentDate, appointmentTime, cutName, price, cutId } =
+    req.body;
+
+  if (!fullName || !appointmentDate || !appointmentTime) {
+    throw new ErrorResponse("Missing required fields", 400);
+  }
+
+  let appointment;
+  try {
+    appointment = await Appointment.create({
+      fullName,
+      appointmentDate,
+      appointmentTime,
+      cutId: cutId || undefined,
+      cutName: cutName || undefined,
+      price: price || 0,
+      status: "pending",
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      throw new ErrorResponse(
+        "This date and time is already booked. Please choose a different time.",
+        400,
+      );
+    }
+    throw err;
+  }
+
+  // Compute benchNumber for the created appointment (same-day pending order)
+  const allAppointments = await Appointment.find();
+
+  const sameDate = allAppointments.filter((a) => {
+    const aDate = new Date(a.appointmentDate);
+    const appDate = new Date(appointment.appointmentDate);
+    aDate.setHours(0, 0, 0, 0);
+    appDate.setHours(0, 0, 0, 0);
+    return aDate.getTime() === appDate.getTime() && a.status === "pending";
+  });
+
+  sameDate.sort(
+    (a, b) =>
+      timeToMinutes(a.appointmentTime) - timeToMinutes(b.appointmentTime),
+  );
+
+  const benchIndex = sameDate.findIndex(
+    (a) => a._id.toString() === appointment._id.toString(),
+  );
+  const obj = appointment.toObject();
+  obj.benchNumber = benchIndex >= 0 ? benchIndex + 1 : 0;
+
+  res.status(201).json(obj);
+});

@@ -21,7 +21,10 @@ const WorkerLogin = () => {
       toast.success("Welcome back!");
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err?.data?.message || "Login failed");
+      toast.error(
+        err?.data?.message ||
+          "We couldn't sign you in. Check your details and try again.",
+      );
     }
   };
 

@@ -21,7 +21,7 @@ const Colleagues = () => {
     );
 
   if (isError) {
-    toast.error("Failed to load colleagues");
+    toast.error("Couldn't load colleagues. Please try again.");
     return (
       <Layout>
         <p className="text-center text-red-500 mt-10">

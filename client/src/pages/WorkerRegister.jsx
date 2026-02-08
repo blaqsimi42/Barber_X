@@ -29,7 +29,9 @@ const WorkerRegister = () => {
       toast.success("Worker registered successfully!");
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err?.data?.message || "Registration failed");
+      toast.error(
+        err?.data?.message || "We couldn't register you. Please try again.",
+      );
     }
   };
 

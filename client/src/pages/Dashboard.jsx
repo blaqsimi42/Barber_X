@@ -56,8 +56,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (workersError || colleaguesError)
-      toast.error("Failed to load team data");
-    if (appointmentsError) toast.error("Failed to load appointments");
+      toast.error("Couldn't load team. Please try again.");
+    if (appointmentsError)
+      toast.error("Couldn't load appointments. Please try again.");
   }, [workersError, colleaguesError, appointmentsError]);
 
   // ----------------------------

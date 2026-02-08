@@ -58,7 +58,10 @@ const Profile = () => {
       setForm({ ...form, password: "" });
       toast.success("Profile updated successfully!");
     } catch (err) {
-      toast.error(err?.data?.message || "Failed to update profile");
+      toast.error(
+        err?.data?.message ||
+          "We couldn't update your profile. Please try again.",
+      );
     }
   };
 

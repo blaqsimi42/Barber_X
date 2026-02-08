@@ -39,7 +39,7 @@ const EditCutModal = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !price) {
-      toast.error("Please fill all fields");
+      toast.error("Please fill in all fields");
       return;
     }
 
@@ -53,7 +53,9 @@ const EditCutModal = () => {
       toast.success("Cut updated successfully!");
       dispatch(clearSelectedCut());
     } catch (err) {
-      toast.error(err?.data?.message || "Failed to update cut");
+      toast.error(
+        err?.data?.message || "We couldn't update the cut. Please try again.",
+      );
     }
   };
 

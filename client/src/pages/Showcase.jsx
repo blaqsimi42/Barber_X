@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useGetCutsQuery } from "../redux/api/cutsApiSlice";
+import { useCreateAppointmentMutation } from "../redux/api/appointmentsApiSlice";
 import { toast } from "react-toastify";
 import {
   Calendar,
@@ -26,6 +27,8 @@ const Showcase = () => {
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [appointmentData, setAppointmentData] = useState(null);
+  const [createAppointment, { isLoading: creating }] =
+    useCreateAppointmentMutation();
   const ticketRef = useRef(null);
   const cutImageRefs = useRef([]);
 
@@ -102,7 +105,7 @@ const Showcase = () => {
     } catch (err) {
       console.error(err);
       toast.error(
-        "Failed to download ticket. Ensure images are loaded and on the same domain.",
+        "Couldn't download ticket. Make sure images are loaded and try again.",
       );
     }
   };
@@ -110,19 +113,22 @@ const Showcase = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.fullName || !form.appointmentDate || !form.appointmentTime) {
-      toast.error("Please fill all fields");
+      toast.error("Please fill in all fields");
       return;
     }
 
     try {
-      setAppointmentData({
+      const payload = {
         fullName: form.fullName,
-        cutName: selectedCut.name,
-        price: selectedCut.price,
         appointmentDate: form.appointmentDate,
         appointmentTime: form.appointmentTime,
-        benchNumber: "TBD",
-      });
+        cutId: selectedCut._id,
+        cutName: selectedCut.name,
+        price: selectedCut.price,
+      };
+
+      const response = await createAppointment(payload).unwrap();
+      setAppointmentData(response);
       setShowSuccess(true);
       setSelectedCut(null);
 
@@ -139,7 +145,11 @@ const Showcase = () => {
         appointmentTime: "",
       });
     } catch (err) {
-      toast.error("Failed to process appointment");
+      console.error(err);
+      toast.error(
+        err?.data?.message ||
+          "We couldn't book your appointment. Please try again.",
+      );
     }
   };
 

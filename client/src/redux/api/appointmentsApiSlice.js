@@ -41,6 +41,17 @@ export const appointmentsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Appointments"],
     }),
+
+    // ----------------------------
+    // Create appointment (public)
+    createAppointment: builder.mutation({
+      query: (data) => ({
+        url: `${BASE_URL}/api/appointments`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Appointments"],
+    }),
   }),
 });
 
@@ -49,4 +60,5 @@ export const {
   useGetAppointmentsByNameQuery,
   useUpdateAppointmentStatusMutation,
   useCancelAppointmentMutation,
+  useCreateAppointmentMutation,
 } = appointmentsApiSlice;

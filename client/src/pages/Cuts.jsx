@@ -35,7 +35,7 @@ const Cuts = () => {
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!name || !price || !file) {
-      toast.error("Please fill all fields and select an image");
+      toast.error("Please complete all fields and choose an image");
       return;
     }
 
@@ -52,7 +52,9 @@ const Cuts = () => {
       setFile(null);
       setPreview("");
     } catch (err) {
-      toast.error(err?.data?.message || "Failed to upload cut");
+      toast.error(
+        err?.data?.message || "We couldn't upload the cut. Please try again.",
+      );
     }
   };
 
@@ -62,7 +64,9 @@ const Cuts = () => {
         await deleteCut(id).unwrap();
         toast.success("Cut deleted successfully!");
       } catch (err) {
-        toast.error(err?.data?.message || "Failed to delete cut");
+        toast.error(
+          err?.data?.message || "We couldn't delete the cut. Please try again.",
+        );
       }
     }
   };

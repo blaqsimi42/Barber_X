@@ -23,7 +23,7 @@ const CutsGallery = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.fullName || !form.appointmentDate || !form.appointmentTime) {
-      toast.error("Please fill all required fields");
+      toast.error("Please complete all required fields");
       return;
     }
 
@@ -36,7 +36,7 @@ const CutsGallery = () => {
         appointmentTime: "",
       });
     } catch (err) {
-      toast.error("Failed to book appointment");
+      toast.error("We couldn't book the appointment. Please try again.");
     }
   };
 
