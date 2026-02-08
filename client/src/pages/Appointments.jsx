@@ -1,29 +1,20 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import Layout from "../components/Layout";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import * as htmlToImage from "html-to-image";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   useGetAllAppointmentsQuery,
-  useGetAppointmentsByNameQuery,
-  useBookAppointmentMutation,
   useCancelAppointmentMutation,
   useUpdateAppointmentStatusMutation,
 } from "../redux/api/appointmentsApiSlice";
-import { useGetMyCutsQuery } from "../redux/api/cutsApiSlice";
-import { useNavigate } from "react-router-dom";
 import {
   Loader,
-  Loader2,
   CalendarDays,
   Trash2,
   Check,
-  XCircle,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { setVisitor } from "../redux/features/auth/authSlice";
 
 const AppointmentCard = ({ app, role, onCancel, onComplete }) => (
   <div className="p-5 bg-white rounded-lg shadow border border-indigo-100 hover:shadow-lg transition">
@@ -81,7 +72,7 @@ const AppointmentCard = ({ app, role, onCancel, onComplete }) => (
 
     {app.status === "pending" && (
       <div className="flex items-center gap-2 mt-4">
-        {role === "visitor" && (
+        {role === "worker" && (
           <button
             onClick={() => onCancel(app)}
             className="flex items-center gap-1 text-red-600 hover:text-red-700 border border-red-200 px-3 py-1 rounded transition"
@@ -102,155 +93,25 @@ const AppointmentCard = ({ app, role, onCancel, onComplete }) => (
   </div>
 );
 
-const BookingForm = ({
-  cuts,
-  formData,
-  handleChange,
-  handleBook,
-  isBooking,
-}) => (
-  <form
-    onSubmit={handleBook}
-    className="bg-white p-6 rounded-lg shadow border border-indigo-100 space-y-4 max-w-md"
-  >
-    <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
-      <CalendarDays size={18} className="text-indigo-600" /> Book New
-      Appointment
-    </h3>
-
-    <div>
-      <label className="text-sm text-gray-600 font-semibold mb-1 block">
-        Choose a Cut
-      </label>
-      {cuts?.data?.length ? (
-        <select
-          name="cutId"
-          value={formData.cutId}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded p-2"
-        >
-          <option value="">Select Cut</option>
-          {cuts.data.map((cut) => (
-            <option key={cut._id} value={cut._id}>
-              {cut.name} — ₦{cut.price}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <p className="text-gray-500">No cuts available</p>
-      )}
-    </div>
-
-    <input
-      type="date"
-      name="appointmentDate"
-      value={formData.appointmentDate}
-      onChange={handleChange}
-      className="w-full border p-2 rounded"
-    />
-    <input
-      type="time"
-      name="appointmentTime"
-      value={formData.appointmentTime}
-      onChange={handleChange}
-      className="w-full border p-2 rounded"
-    />
-
-    <button
-      type="submit"
-      disabled={isBooking}
-      className="w-full bg-indigo-600 text-white py-2 rounded flex justify-center gap-2"
-    >
-      {isBooking ? (
-        <Loader2 className="animate-spin w-4 h-4" />
-      ) : (
-        "Book Appointment"
-      )}
-    </button>
-  </form>
-);
-
 const Appointments = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
-  const role = user?.role || "visitor";
-  const fullName = user?.name || user?.fullName || "";
+  const role = user?.role || "admin";
 
-  const [formData, setFormData] = useState({
-    cutId: "",
-    appointmentDate: "",
-    appointmentTime: "",
-  });
   const [selectedTab, setSelectedTab] = useState("All");
   const [selectedPeriod, setSelectedPeriod] = useState("All Time");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
-
-  const [showTicket, setShowTicket] = useState(false);
-  const [ticketData, setTicketData] = useState(null);
   const [cancelModal, setCancelModal] = useState({
     open: false,
     targetId: null,
     cutName: "",
   });
-  const ticketRef = useRef(null);
 
-  useEffect(() => {
-    if (!user && role === "visitor") {
-      const token = localStorage.getItem("visitorToken");
-      const name = localStorage.getItem("visitorName");
-      if (token && name) dispatch(setVisitor({ name, token }));
-    }
-  }, [user, dispatch, role]);
-
-  const { data: cuts, isLoading: isCutsLoading } = useGetMyCutsQuery();
   const { data: allAppointments, isLoading: loadingAll } =
-    useGetAllAppointmentsQuery(undefined, { skip: role === "visitor" });
-  const visitorName =
-    role === "visitor" ? localStorage.getItem("visitorName") || fullName : "";
-  const { data: myAppointments, isLoading: loadingMine } =
-    useGetAppointmentsByNameQuery(visitorName, { skip: role !== "visitor" });
+    useGetAllAppointmentsQuery(undefined);
 
-  const [bookAppointment, { isLoading: isBooking }] =
-    useBookAppointmentMutation();
   const [cancelAppointment] = useCancelAppointmentMutation();
   const [updateStatus] = useUpdateAppointmentStatusMutation();
-
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const handleBook = async (e) => {
-    e.preventDefault();
-    const { cutId, appointmentDate, appointmentTime } = formData;
-    if (!fullName || !cutId || !appointmentDate || !appointmentTime) {
-      toast.error("Please fill all fields");
-      return;
-    }
-    try {
-      const response = await bookAppointment({
-        fullName,
-        cutId,
-        appointmentDate,
-        appointmentTime,
-      }).unwrap();
-      if (response.tempToken) {
-        localStorage.setItem("visitorToken", response.tempToken);
-        localStorage.setItem("visitorName", fullName);
-        dispatch(setVisitor({ name: fullName, token: response.tempToken }));
-      }
-      setFormData({ cutId: "", appointmentDate: "", appointmentTime: "" });
-      setTicketData(response.appointment);
-      setShowTicket(true);
-      toast.success("Appointment booked successfully!");
-      setTimeout(() => {
-        setShowTicket(false);
-        navigate("/visitor-dashboard");
-      }, 3000);
-    } catch (err) {
-      toast.error(err?.data?.message || "Failed to book appointment");
-    }
-  };
 
   const handleCancel = (app) =>
     setCancelModal({ open: true, targetId: app._id, cutName: app.cutName });
@@ -275,10 +136,7 @@ const Appointments = () => {
     }
   };
 
-  const appointments =
-    role === "admin" || role === "worker"
-      ? allAppointments || []
-      : myAppointments || [];
+  const appointments = allAppointments || [];
 
   const today = new Date();
   const filteredAppointments = useMemo(() => {
@@ -324,9 +182,7 @@ const Appointments = () => {
     return { all, pending, completed, cancelled };
   }, [appointments]);
 
-  const isLoadingPage = isCutsLoading || loadingAll || loadingMine || isBooking;
-
-  if (isLoadingPage)
+  if (loadingAll)
     return (
       <Layout>
         <div className="flex items-center justify-center h-[80vh]">
@@ -346,11 +202,7 @@ const Appointments = () => {
   return (
     <Layout>
       <div className="space-y-8 md:mt-2 mt-12">
-        <h2 className="text-3xl font-bold text-indigo-600">
-          {role === "admin" || role === "worker"
-            ? "All Appointments"
-            : "My Appointments"}
-        </h2>
+        <h2 className="text-3xl font-bold text-indigo-600">All Appointments</h2>
 
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-indigo-100 pb-3">
           <div className="flex flex-wrap gap-3">
@@ -418,16 +270,6 @@ const Appointments = () => {
           </div>
         </div>
 
-        {role === "visitor" && (
-          <BookingForm
-            cuts={cuts}
-            formData={formData}
-            handleChange={handleChange}
-            handleBook={handleBook}
-            isBooking={isBooking}
-          />
-        )}
-
         {filteredAppointments.length === 0 ? (
           <p className="text-gray-500 mt-4 text-sm">
             No {selectedTab.toLowerCase()} appointments for this period.
@@ -456,6 +298,34 @@ const Appointments = () => {
               </div>
             )}
           </>
+        )}
+
+        {/* Cancel Modal */}
+        {cancelModal.open && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <p className="mb-4 text-gray-700">
+                Are you sure you want to cancel the appointment for{" "}
+                <strong>{cancelModal.cutName}</strong>?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancelConfirmed}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                >
+                  Confirm Cancel
+                </button>
+                <button
+                  onClick={() =>
+                    setCancelModal({ open: false, targetId: null, cutName: "" })
+                  }
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition"
+                >
+                  Go Back
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </Layout>

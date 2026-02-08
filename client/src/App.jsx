@@ -7,7 +7,6 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminRegister from "./pages/AdminRegister";
 import WorkerLogin from "./pages/WorkerLogin";
 import WorkerRegister from "./pages/WorkerRegister";
-import VisitorDashboard from "./pages/VisitorDashboard";
 import Cuts from "./pages/Cuts";
 import Appointments from "./pages/Appointments";
 import Workers from "./pages/Workers";
@@ -15,8 +14,8 @@ import Profile from "./pages/Profile";
 import CutsGallery from "./pages/CutsGallery";
 import PrivateRoute from "./components/PrivateRoute";
 import Colleagues from "./pages/Colleagues";
-import Sales from "./pages/Sales"; // ✅ Added Sales page
-import Bench from "./pages/Bench"; // ✅ Added Bench page
+import Sales from "./pages/Sales";
+import Bench from "./pages/Bench";
 
 function App() {
   return (
@@ -29,16 +28,6 @@ function App() {
       <Route path="/worker-login" element={<WorkerLogin />} />
       <Route path="/worker-register" element={<WorkerRegister />} />
       <Route path="/cuts" element={<CutsGallery />} />
-
-      {/* Visitor Dashboard Route */}
-      <Route
-        path="/visitor-dashboard"
-        element={
-          <PrivateRoute>
-            <VisitorDashboard />
-          </PrivateRoute>
-        }
-      />
 
       {/* Protected Routes (Admin & Worker) */}
       <Route

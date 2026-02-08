@@ -23,10 +23,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
-  const role = user?.role || "visitor";
+  const role = user?.role || "admin";
   const isAdmin = role === "admin";
   const isWorker = role === "worker";
-  const isVisitor = role === "visitor";
 
   const [activeTab, setActiveTab] = useState("pending");
   const [showTeam, setShowTeam] = useState(false);
@@ -47,48 +46,25 @@ const Dashboard = () => {
     data: colleaguesData,
     isLoading: colleaguesLoading,
     isError: colleaguesError,
-  } = useGetColleaguesQuery(undefined, { skip: isAdmin || isVisitor });
+  } = useGetColleaguesQuery(undefined, { skip: !isWorker });
 
   const {
     data: allAppointments,
     isLoading: allAppointmentsLoading,
     isError: appointmentsError,
-  } = useGetAllAppointmentsQuery(undefined, { skip: isVisitor });
+  } = useGetAllAppointmentsQuery();
 
-  const visitorName = isVisitor
-    ? localStorage.getItem("visitorName") || user?.name || ""
-    : "";
-  const {
-    data: visitorAppointments,
-    isLoading: visitorAppointmentsLoading,
-    isError: visitorAppointmentsError,
-  } = useGetAppointmentsByNameQuery(visitorName, {
-    skip: !isVisitor || !visitorName,
-  });
-
-  // ----------------------------
-  // Error Handling
-  // ----------------------------
   useEffect(() => {
     if (workersError || colleaguesError)
       toast.error("Failed to load team data");
-    if (appointmentsError || visitorAppointmentsError)
-      toast.error("Failed to load appointments");
-  }, [
-    workersError,
-    colleaguesError,
-    appointmentsError,
-    visitorAppointmentsError,
-  ]);
+    if (appointmentsError) toast.error("Failed to load appointments");
+  }, [workersError, colleaguesError, appointmentsError]);
 
   // ----------------------------
   // Loading State
   // ----------------------------
   const isLoading =
-    workersLoading ||
-    colleaguesLoading ||
-    allAppointmentsLoading ||
-    visitorAppointmentsLoading;
+    workersLoading || colleaguesLoading || allAppointmentsLoading;
 
   if (isLoading)
     return (
@@ -105,24 +81,18 @@ const Dashboard = () => {
   // ----------------------------
   // Data Handling
   // ----------------------------
-  let appointments = isVisitor
-    ? visitorAppointments || []
-    : allAppointments || [];
+  let appointments = allAppointments || [];
 
   // Sort completed on top for admins/workers
-  if (!isVisitor) {
-    appointments = [
-      ...appointments.filter((a) => a.status === "completed"),
-      ...appointments.filter((a) => a.status === "pending"),
-      ...appointments.filter((a) => a.status === "cancelled"),
-    ];
-  }
+  appointments = [
+    ...appointments.filter((a) => a.status === "completed"),
+    ...appointments.filter((a) => a.status === "pending"),
+    ...appointments.filter((a) => a.status === "cancelled"),
+  ];
 
   const team = isAdmin
     ? workersData?.workers || []
-    : isWorker
-      ? colleaguesData?.colleagues || []
-      : [];
+    : colleaguesData?.colleagues || [];
 
   const pending = appointments.filter((a) => a.status === "pending");
   const completed = appointments.filter((a) => a.status === "completed");
@@ -206,7 +176,7 @@ const Dashboard = () => {
           Date: {new Date(appt.appointmentDate).toLocaleDateString()}{" "}
           {appt.appointmentTime}
         </p>
-        {!isVisitor && appt.status === "completed" && appt.completedAt && (
+        {appt.status === "completed" && appt.completedAt && (
           <p className="text-gray-700">
             Completed on: {new Date(appt.completedAt).toLocaleDateString()}
           </p>
@@ -216,7 +186,7 @@ const Dashboard = () => {
       {/* Bottom Section */}
       <div className="mt-2 flex flex-col gap-1">
         {statusBadge(appt.status)}
-        {!isVisitor && appt.status === "completed" && (
+        {appt.status === "completed" && (
           <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-800">
             Completed by: {appt.workerName || "-"}
           </span>
@@ -233,21 +203,17 @@ const Dashboard = () => {
       <div className="space-y-10 md:mt-2 mt-12">
         {/* 🔹 Summary */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {!isVisitor && (
-            <motion.div className="flex items-center gap-4 p-5 bg-white shadow-md border border-indigo-100 rounded-lg hover:shadow-lg transition">
-              <div className="p-3 bg-indigo-100 text-indigo-600 rounded-full">
-                <Users size={24} />
-              </div>
-              <div>
-                <h4 className="text-gray-500 text-sm font-medium">
-                  {isAdmin ? "Total Workers" : "Total Colleagues"}
-                </h4>
-                <p className="text-2xl font-bold text-indigo-700">
-                  {totalTeam}
-                </p>
-              </div>
-            </motion.div>
-          )}
+          <motion.div className="flex items-center gap-4 p-5 bg-white shadow-md border border-indigo-100 rounded-lg hover:shadow-lg transition">
+            <div className="p-3 bg-indigo-100 text-indigo-600 rounded-full">
+              <Users size={24} />
+            </div>
+            <div>
+              <h4 className="text-gray-500 text-sm font-medium">
+                {isAdmin ? "Total Workers" : "Total Colleagues"}
+              </h4>
+              <p className="text-2xl font-bold text-indigo-700">{totalTeam}</p>
+            </div>
+          </motion.div>
 
           <motion.div className="flex items-center gap-4 p-5 bg-white shadow-md border border-indigo-100 rounded-lg hover:shadow-lg transition">
             <div className="p-3 bg-indigo-100 text-indigo-600 rounded-full">
@@ -255,7 +221,7 @@ const Dashboard = () => {
             </div>
             <div>
               <h4 className="text-gray-500 text-sm font-medium">
-                {isVisitor ? "My Total Appointments" : "Total Appointments"}
+                Total Appointments
               </h4>
               <p className="text-2xl font-bold text-indigo-700">
                 {totalAppointments}
@@ -268,8 +234,7 @@ const Dashboard = () => {
         <section>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-indigo-600">
-              {isVisitor ? "My Appointments Overview" : "Appointments Overview"}{" "}
-              ({totalAppointments})
+              Appointments Overview ({totalAppointments})
             </h2>
             <button
               onClick={() => setShowAppointments(!showAppointments)}

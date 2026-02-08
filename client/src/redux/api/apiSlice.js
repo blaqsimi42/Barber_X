@@ -6,7 +6,9 @@ export const apiSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: getApiBase(), // dynamically fetched base URL
     prepareHeaders: (headers, { getState }) => {
-      const token = getState()?.auth?.user?.token || null;
+      const state = getState();
+      // Use token from auth state (admin/worker flows)
+      const token = state?.auth?.token || state?.auth?.user?.token || null;
       if (token) headers.set("Authorization", `Bearer ${token}`);
       return headers;
     },

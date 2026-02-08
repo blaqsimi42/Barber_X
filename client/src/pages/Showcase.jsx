@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useGetCutsQuery } from "../redux/api/cutsApiSlice";
-import { useBookAppointmentMutation } from "../redux/api/appointmentsApiSlice";
 import { toast } from "react-toastify";
 import {
   Calendar,
@@ -12,18 +11,11 @@ import {
 import * as htmlToImage from "html-to-image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { setVisitor } from "../redux/features/auth/authSlice";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Showcase = () => {
   const { data, isLoading, isError } = useGetCutsQuery();
-  const [createAppointment, { isLoading: isBooking }] =
-    useBookAppointmentMutation();
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const [selectedCut, setSelectedCut] = useState(null);
   const [form, setForm] = useState({
@@ -123,15 +115,17 @@ const Showcase = () => {
     }
 
     try {
-      const response = await createAppointment({
-        ...form,
-        cutId: selectedCut._id,
-      }).unwrap();
-
-      const appointment = response.appointment || response;
-      setAppointmentData(appointment);
+      setAppointmentData({
+        fullName: form.fullName,
+        cutName: selectedCut.name,
+        price: selectedCut.price,
+        appointmentDate: form.appointmentDate,
+        appointmentTime: form.appointmentTime,
+        benchNumber: "TBD",
+      });
       setShowSuccess(true);
       setSelectedCut(null);
+
       const toLocalDate = (d) => {
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -144,21 +138,8 @@ const Showcase = () => {
         appointmentDate: toLocalDate(new Date()),
         appointmentTime: "",
       });
-
-      // If backend issued a temporary token for visitor session, persist it and set visitor in Redux
-      if (response.tempToken) {
-        const visitorName = form.fullName;
-        localStorage.setItem("visitorToken", response.tempToken);
-        localStorage.setItem("visitorName", visitorName);
-        dispatch(setVisitor({ name: visitorName, token: response.tempToken }));
-
-        // Navigate to visitor dashboard after showing success briefly
-        setTimeout(() => {
-          navigate("/visitor-dashboard");
-        }, 2500);
-      }
     } catch (err) {
-      toast.error(err?.data?.message || "Failed to book appointment");
+      toast.error("Failed to process appointment");
     }
   };
 
@@ -304,16 +285,9 @@ const Showcase = () => {
 
               <button
                 type="submit"
-                disabled={isBooking}
-                className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition disabled:opacity-70"
+                className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
               >
-                {isBooking ? (
-                  <>
-                    <Loader className="animate-spin" size={18} /> Booking...
-                  </>
-                ) : (
-                  "Confirm Appointment"
-                )}
+                Confirm Appointment
               </button>
             </form>
           </div>

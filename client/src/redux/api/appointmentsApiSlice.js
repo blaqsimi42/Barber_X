@@ -5,21 +5,6 @@ import { BASE_URL } from "../constants.js";
 export const appointmentsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // ----------------------------
-    // Book an appointment (visitor)
-    bookAppointment: builder.mutation({
-      query: (appointmentData) => ({
-        url: `${BASE_URL}/api/appointments`,
-        method: "POST",
-        body: appointmentData,
-      }),
-      // ✅ After booking, invalidate visitor's appointments cache
-      invalidatesTags: (result, error, arg) =>
-        result?.appointment?.fullName
-          ? [{ type: "Appointments", id: result.appointment.fullName }]
-          : ["Appointments"],
-    }),
-
-    // ----------------------------
     // Get all appointments (admin)
     getAllAppointments: builder.query({
       query: () => `${BASE_URL}/api/appointments`,
@@ -27,7 +12,7 @@ export const appointmentsApiSlice = apiSlice.injectEndpoints({
     }),
 
     // ----------------------------
-    // Get appointments by customer name (visitor, admin, worker)
+    // Get appointments by customer name (admin/worker)
     getAppointmentsByName: builder.query({
       query: (name) => `${BASE_URL}/api/appointments/my/${name}`,
       // ✅ Provide tag per customer name for targeted invalidation
@@ -48,23 +33,18 @@ export const appointmentsApiSlice = apiSlice.injectEndpoints({
     }),
 
     // ----------------------------
-    // Cancel appointment (visitor/customer)
+    // Cancel appointment (admin/worker)
     cancelAppointment: builder.mutation({
-      query: ({ id, fullName }) => ({
+      query: ({ id }) => ({
         url: `${BASE_URL}/api/appointments/${id}/cancel`,
         method: "PUT",
       }),
-      // ✅ Invalidate only visitor's appointments cache
-      invalidatesTags: (result, error, arg) =>
-        arg?.fullName
-          ? [{ type: "Appointments", id: arg.fullName }]
-          : ["Appointments"],
+      invalidatesTags: ["Appointments"],
     }),
   }),
 });
 
 export const {
-  useBookAppointmentMutation,
   useGetAllAppointmentsQuery,
   useGetAppointmentsByNameQuery,
   useUpdateAppointmentStatusMutation,

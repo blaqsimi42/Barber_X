@@ -7,15 +7,3 @@ export const generateToken = (id) => {
     expiresIn: "30d",
   });
 };
-
-//  Temporary token for visitor (appointment only)
-export const generateTempToken = (appointmentId, fullName) => {
-  // Include a marker so visitor middleware can identify temp tokens
-  return jwt.sign(
-    { id: appointmentId, name: fullName, tempVisitor: true },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "1d", // valid for 1 day
-    },
-  );
-};

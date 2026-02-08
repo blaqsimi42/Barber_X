@@ -2,7 +2,6 @@ import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import Admin from "../models/adminModel.js";
 import Worker from "../models/workerModel.js";
-import Visitor from "../models/visitorModel.js";
 
 /**
  *  Generic token verification
@@ -65,24 +64,7 @@ export const protectWorker = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * 🛡 Protect Visitor Routes
- */
-export const protectVisitor = asyncHandler(async (req, res, next) => {
-  const userId = await verifyToken(req);
-
-  const visitor = await Visitor.findById(userId).select("-password");
-  if (!visitor) {
-    res.status(401);
-    throw new Error("Visitor not found or invalid token");
-  }
-
-  req.user = visitor;
-  req.role = "visitor";
-  next();
-});
-
-/**
- * 🛡 Generic Protect - Works for Admin, Worker, or Visitor
+ * 🛡 Generic Protect - Works for Admin or Worker
  */
 export const protect = asyncHandler(async (req, res, next) => {
   const userId = await verifyToken(req);
@@ -103,21 +85,12 @@ export const protect = asyncHandler(async (req, res, next) => {
     return next();
   }
 
-  // Try Visitor
-  user = await Visitor.findById(userId).select("-password");
-  if (user) {
-    req.user = user;
-    req.role = "visitor";
-    return next();
-  }
-
   res.status(401);
   throw new Error("Not authorized — user not found");
 });
 
 /**
- *  Optional: Combined middleware (Admin or Worker only)
- * Allows access if user is either admin or worker
+ *  Combined middleware (Admin or Worker)
  */
 export const protectAny = asyncHandler(async (req, res, next) => {
   const userId = await verifyToken(req);

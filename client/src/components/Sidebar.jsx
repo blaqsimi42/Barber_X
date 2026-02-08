@@ -13,10 +13,7 @@ import {
   Armchair,
 } from "lucide-react";
 import { logout } from "../redux/features/auth/authSlice";
-import {
-  useGetAllAppointmentsQuery,
-  useGetAppointmentsByNameQuery,
-} from "../redux/api/appointmentsApiSlice";
+import { useGetAllAppointmentsQuery } from "../redux/api/appointmentsApiSlice";
 import { useGetWorkersQuery } from "../redux/features/admin/adminApiSlice";
 
 const Sidebar = ({ onClose }) => {
@@ -29,51 +26,30 @@ const Sidebar = ({ onClose }) => {
 
   const handleLogout = () => {
     dispatch(logout());
-    localStorage.removeItem("visitorToken");
-    localStorage.removeItem("visitorName");
     navigate("/admin-login");
   };
 
-  // ------------------------
   // LIVE DATA (Polling)
-  // ------------------------
-
   const { data: allAppointments = [] } = useGetAllAppointmentsQuery(undefined, {
-    skip: !user || role === "visitor",
-    pollingInterval: 5000, // 🔥 LIVE
+    skip: !user,
+    pollingInterval: 5000,
   });
-
-  const visitorName =
-    role === "visitor" ? localStorage.getItem("visitorName") || "" : "";
-
-  const { data: myAppointments = [] } = useGetAppointmentsByNameQuery(
-    visitorName,
-    {
-      skip: role !== "visitor",
-      pollingInterval: 5000, // 🔥 LIVE
-    },
-  );
 
   const { data: workersData } = useGetWorkersQuery(undefined, {
     skip: role !== "admin",
-    pollingInterval: 10000, // Workers don’t change often
+    pollingInterval: 10000,
   });
 
-  // ------------------------
   // COUNTS (LIVE)
-  // ------------------------
-
   const totalWorkers = workersData?.workers?.length || 0;
 
-  const benchCount =
-    role === "admin" || role === "worker"
-      ? allAppointments.filter(
-          (a) =>
-            a.status === "pending" ||
-            a.status === "completed" ||
-            a.status === "cancelled",
-        ).length
-      : 0;
+  // Use server-calculated `benchNumber` to reflect today's bench positions
+  let benchCount = 0;
+  if (role === "admin" || role === "worker") {
+    benchCount = allAppointments.filter(
+      (a) => Number(a.benchNumber) > 0,
+    ).length;
+  }
 
   let newAppointments = 0;
   let totalSales = 0;
@@ -104,25 +80,13 @@ const Sidebar = ({ onClose }) => {
     ).length;
   }
 
-  if (role === "visitor") {
-    newAppointments = myAppointments.filter(
-      (a) => a.status === "pending",
-    ).length;
-  }
-
-  // ------------------------
   // ACTIVE LINK STYLE
-  // ------------------------
-
   const isActive = (path) =>
     location.pathname === path
       ? "bg-indigo-50 text-indigo-600 font-semibold"
       : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600";
 
-  // ------------------------
   // MENU ITEMS
-  // ------------------------
-
   const menuItems = [];
 
   if (role === "admin") {
@@ -187,26 +151,7 @@ const Sidebar = ({ onClose }) => {
     );
   }
 
-  if (role === "visitor") {
-    menuItems.push({
-      label: "My Appointments",
-      icon: Calendar,
-      link: "/appointments",
-      badge: newAppointments,
-    });
-    // Allow visitors to view bench (their queue position)
-    menuItems.push({
-      label: "Bench",
-      icon: Armchair,
-      link: "/dashboard/bench",
-      badge: 0,
-    });
-  }
-
-  // ------------------------
   // RENDER
-  // ------------------------
-
   return (
     <div className="flex flex-col justify-between h-full">
       {/* Mobile Close */}
@@ -231,10 +176,14 @@ const Sidebar = ({ onClose }) => {
       <nav className="flex-1 mt-4 px-3">
         <div className="rounded-2xl bg-white shadow-sm border border-indigo-50 overflow-hidden">
           {menuItems.map((item) => (
-            <Link
+            <a
               key={item.label}
-              to={item.link}
-              onClick={onClose}
+              href={item.link}
+              onClick={(e) => {
+                e.preventDefault();
+                navigate(item.link);
+                onClose && onClose();
+              }}
               className={`flex items-center justify-between px-5 py-3 transition border-b border-indigo-100 last:border-b-0 ${isActive(
                 item.link,
               )}`}
@@ -249,7 +198,7 @@ const Sidebar = ({ onClose }) => {
                   {item.badge}
                 </span>
               )}
-            </Link>
+            </a>
           ))}
         </div>
       </nav>

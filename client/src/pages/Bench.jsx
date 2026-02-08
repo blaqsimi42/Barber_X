@@ -62,16 +62,16 @@ const SortableRow = ({ app, index }) => {
 ----------------------------- */
 const Bench = () => {
   const { user } = useSelector((state) => state.auth);
-  const role = user?.role || "visitor";
+  const role = user?.role || "admin";
 
   const audioRef = useRef(null);
-  const prevCountRef = useRef(0);
+  const prevPendingIdsRef = useRef(new Set());
   const [timeFilter, setTimeFilter] = useState("today");
 
   const { data: allAppointments = [], isLoading } = useGetAllAppointmentsQuery(
     undefined,
     {
-      skip: role === "visitor",
+      skip: !user,
       pollingInterval: 5000,
     },
   );
@@ -82,31 +82,36 @@ const Bench = () => {
   const getFilteredAppointments = useMemo(() => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    const parseDateOnly = (dateInput) => {
+      if (!dateInput) return new Date(NaN);
+      const s = String(dateInput).split("T")[0];
+      const parts = s.split("-");
+      if (parts.length === 3) {
+        const [y, m, d] = parts.map(Number);
+        return new Date(y, m - 1, d);
+      }
+      const dObj = new Date(dateInput);
+      return new Date(dObj.getFullYear(), dObj.getMonth(), dObj.getDate());
+    };
 
     return allAppointments.filter((app) => {
       if (!["pending", "completed", "cancelled"].includes(app.status)) {
         return false;
       }
 
-      const appDate = new Date(app.appointmentDate);
-      const appDateOnly = new Date(
-        appDate.getFullYear(),
-        appDate.getMonth(),
-        appDate.getDate(),
-      );
+      const appDateOnly = parseDateOnly(app.appointmentDate);
 
       switch (timeFilter) {
         case "today":
           return appDateOnly.getTime() === today.getTime();
         case "month":
           return (
-            appDate.getFullYear() === now.getFullYear() &&
-            appDate.getMonth() === now.getMonth()
+            appDateOnly.getFullYear() === now.getFullYear() &&
+            appDateOnly.getMonth() === now.getMonth()
           );
         case "year":
-          return appDate.getFullYear() === now.getFullYear();
+          return appDateOnly.getFullYear() === now.getFullYear();
         default:
           return true;
       }
@@ -124,7 +129,6 @@ const Bench = () => {
       return acc;
     }, {});
 
-    // Sort dates with today first
     const now = new Date();
     const todayStr = now.toLocaleDateString();
     const sorted = {};
@@ -144,7 +148,6 @@ const Bench = () => {
     return sorted;
   }, [getFilteredAppointments]);
 
-  const [queue, setQueue] = useState({});
   const [expandedDates, setExpandedDates] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("benchExpandedDates")) || {};
@@ -153,37 +156,40 @@ const Bench = () => {
     }
   });
 
+  const [localQueue, setLocalQueue] = useState({});
+
   /* -----------------------------
-     Sync Queue + Auto Collapse
+     Initialize localQueue SAFELY (NO LOOP)
   ----------------------------- */
   useEffect(() => {
-    setQueue(groupedByDate);
+    setLocalQueue((prev) => {
+      const prevKeys = Object.keys(prev);
+      const nextKeys = Object.keys(groupedByDate);
 
-    setExpandedDates((prev) => {
-      const next = {};
-      Object.keys(groupedByDate).forEach((date) => {
-        next[date] = prev[date] || false;
-      });
-      return next;
+      if (prevKeys.length === nextKeys.length) {
+        return prev;
+      }
+
+      return groupedByDate;
     });
   }, [groupedByDate]);
 
   /* -----------------------------
-     Persist Expanded State
+     Sound Notification (ONLY NEW pending)
   ----------------------------- */
   useEffect(() => {
-    localStorage.setItem("benchExpandedDates", JSON.stringify(expandedDates));
-  }, [expandedDates]);
+    const pending = allAppointments.filter((a) => a.status === "pending");
+    const pendingIds = new Set(pending.map((a) => a._id));
 
-  /* -----------------------------
-     Sound Notification
-  ----------------------------- */
-  useEffect(() => {
-    const total = allAppointments.length;
-    if (total > prevCountRef.current) {
-      audioRef.current?.play();
+    const hasNewPending = pending.some(
+      (a) => !prevPendingIdsRef.current.has(a._id),
+    );
+
+    if (hasNewPending) {
+      audioRef.current?.play().catch(() => {});
     }
-    prevCountRef.current = total;
+
+    prevPendingIdsRef.current = pendingIds;
   }, [allAppointments]);
 
   if (isLoading) {
@@ -231,13 +237,13 @@ const Bench = () => {
           </div>
         </div>
 
-        {Object.keys(queue).length === 0 && (
+        {Object.keys(groupedByDate).length === 0 && (
           <p className="text-gray-500">No bench appointments.</p>
         )}
 
-        {Object.entries(queue).map(([date, apps]) => {
+        {Object.entries(groupedByDate).map(([date, apps]) => {
           const isExpanded = expandedDates[date];
-          const visibleApps = isExpanded ? apps : apps.slice(0, 4);
+          const visibleApps = isExpanded ? localQueue[date] : apps.slice(0, 4);
 
           return (
             <div key={date} className="space-y-4">
@@ -251,7 +257,7 @@ const Bench = () => {
                     onDragEnd={({ active, over }) => {
                       if (!over || active.id === over.id) return;
 
-                      setQueue((prev) => {
+                      setLocalQueue((prev) => {
                         const oldIndex = prev[date].findIndex(
                           (i) => i._id === active.id,
                         );
