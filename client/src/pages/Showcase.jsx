@@ -295,9 +295,22 @@ const Showcase = () => {
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
+                disabled={creating}
+                aria-busy={creating}
+                className={`w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2 rounded transition ${
+                  creating
+                    ? "opacity-60 cursor-not-allowed"
+                    : "hover:bg-indigo-700"
+                }`}
               >
-                Confirm Appointment
+                {creating ? (
+                  <>
+                    <Loader className="animate-spin w-5 h-5" />
+                    <span>Confirming appointment...</span>
+                  </>
+                ) : (
+                  "Confirm Appointment"
+                )}
               </button>
             </form>
           </div>
